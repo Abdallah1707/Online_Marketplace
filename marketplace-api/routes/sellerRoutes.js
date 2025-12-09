@@ -5,8 +5,12 @@ const productController = require('../controllers/productController');
 const flagController = require('../controllers/flagController');
 
 router.use(protect, requireRole('seller'));
-// Seller can manage products - placeholder endpoints
-router.get('/products', productController.list);
+
+// Product management
+router.get('/products', productController.sellerProducts);
+router.post('/products', productController.create);
+router.put('/products/:id', productController.update);
+router.delete('/products/:id', productController.delete);
 
 // Flags (seller or admin)
 router.post('/flags', flagController.createFlag);

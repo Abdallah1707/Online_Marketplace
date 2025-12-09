@@ -11,12 +11,6 @@
 1. [Project Overview](#project-overview)
 2. [Authentication & Core](#authentication--core)
 3. [Phase 1 - Public Catalog (✅ COMPLETE)](#phase-1---public-catalog--complete)
-4. [Phase 2 - Buyer Cart & Orders (🔄 PLANNED)](#phase-2---buyer-cart--orders--planned)
-5. [Phase 3 - Seller Order Management (🔄 PLANNED)](#phase-3---seller-order-management--planned)
-6. [Phase 4 - Advanced Features (🔄 PLANNED)](#phase-4---advanced-features--planned)
-7. [Database Models](#database-models)
-8. [Error Handling](#error-handling)
-9. [Testing Guide](#testing-guide)
 
 ---
 

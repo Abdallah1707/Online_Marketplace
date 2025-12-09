@@ -12,6 +12,12 @@ router.post('/products', productController.create);
 router.put('/products/:id', productController.update);
 router.delete('/products/:id', productController.delete);
 
+// POST /api/seller/categories - Create Category (Seller Only)
+router.post('/categories', productController.createCategory);
+
+// DELETE /api/seller/categories/:id - Delete Category (Seller Only)
+router.delete('/categories/:id', productController.deleteCategory);
+
 // Flags (seller or admin)
 router.post('/flags', flagController.createFlag);
 

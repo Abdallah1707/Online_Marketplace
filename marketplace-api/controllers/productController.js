@@ -1,5 +1,5 @@
 const Product = require('../models/Product');
-const Category = require('../models/Category');
+const Category = require('../models/Category'); // Ensure Category model is imported
 const Comment = require('../models/Comment');
 
 // ============ PUBLIC ENDPOINTS ============
@@ -54,28 +54,6 @@ exports.get = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-// GET /api/public/products/:id/summary - Get AI-generated comment summary
-exports.getCommentSummary = async (req, res, next) => {
-  try {
-    const comments = await Comment.find({ product: req.params.id })
-      .populate('author', 'name')
-      .sort({ createdAt: -1 });
-    
-    if (comments.length === 0) {
-      return res.json({ summary: 'No comments yet for this product.' });
-    }
-    
-    // Simple summarization: Group comments and get stats
-    const commentTexts = comments.map(c => c.body);
-    const summary = {
-      totalComments: comments.length,
-      recentComments: commentTexts.slice(0, 3),
-      summary: `This product has ${comments.length} comments. ${commentTexts.slice(0, 1).join(' ')}`
-    };
-    
-    res.json(summary);
-  } catch (err) { next(err); }
-};
 
 // GET /api/public/products/search?q=... - Search products
 exports.search = async (req, res, next) => {
@@ -128,6 +106,54 @@ exports.getCategoryWithProducts = async (req, res, next) => {
 };
 
 // ============ SELLER ENDPOINTS ============
+
+// POST /api/seller/categories - Create new category (seller only)
+exports.createCategory = async (req, res, next) => {
+  try {
+    const { name, description } = req.body;
+
+    if (!name) {
+      return res.status(400).json({ error: 'Category name is required' });
+    }
+
+    // Check if category already exists (use 409 Conflict)
+    const categoryExists = await Category.findOne({ name: name.trim() });
+    
+    if (categoryExists) {
+      return res.status(409).json({ error: 'A category with this name already exists.' });
+    }
+
+    const category = new Category({
+      name: name.trim(),
+      description
+    });
+
+    await category.save();
+    
+    // Respond with 201 Created status
+    res.status(201).json(category);
+  } catch (err) { next(err); }
+};
+
+// DELETE /api/seller/categories/:id - Delete category (seller only)
+exports.deleteCategory = async (req, res, next) => {
+  try {
+    const category = await Category.findById(req.params.id);
+
+    if (!category) {
+      return res.status(404).json({ error: 'Category not found' });
+    }
+
+    // Delete the category
+    await Category.findByIdAndDelete(req.params.id);
+    
+    // IMPORTANT: Clear the category reference on all associated products 
+    // to prevent Mongoose errors or orphaned references.
+    await Product.updateMany({ category: req.params.id }, { $set: { category: null } });
+
+    res.json({ message: 'Category deleted successfully' });
+  } catch (err) { next(err); }
+};
 
 // POST /api/seller/products - Create new product (seller only)
 exports.create = async (req, res, next) => {

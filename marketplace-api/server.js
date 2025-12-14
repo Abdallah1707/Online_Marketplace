@@ -3,6 +3,9 @@ const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const path = require('path');
 
+const cors = require('cors');
+
+
 dotenv.config();
 
 const config = require('./config');
@@ -13,7 +16,15 @@ const sellerRoutes = require('./routes/sellerRoutes');
 const { errorHandler } = require('./middleware/errorMiddleware');
 
 const app = express();
+
+// CORS for your React dev server
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: false
+}));
+
 app.use(express.json());
+
 
 // Connect to database
 require('./config/database')();

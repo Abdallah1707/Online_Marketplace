@@ -5,6 +5,7 @@ const ProductSchema = new Schema({
   title: { type: String, required: true, unique: true, trim: true },
   description: {String},
   price: { type: Number, required: true },
+  deliveryDays: { type: Number, default: 1 }, // Estimated delivery time in days
   seller: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   category: { type: Schema.Types.ObjectId, ref: 'Category' },
   createdAt: { type: Date, default: Date.now },

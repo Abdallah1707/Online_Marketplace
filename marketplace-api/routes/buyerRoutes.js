@@ -2,9 +2,15 @@ const express = require('express');
 const router = express.Router();
 const { protect, requireRole } = require('../middleware/authMiddleware');
 const orderController = require('../controllers/orderController');
+const ratingController = require('../controllers/ratingController');
+const flagController = require('../controllers/flagController');
+const orderCommentController = require('../controllers/orderCommentController');
 
 router.use(protect);
 router.post('/orders', orderController.createOrder);
 router.get('/orders/:id', orderController.getOrder);
+router.post('/products/:id/rate', protect, ratingController.rateProduct);
+router.post('/flags/seller', protect, flagController.flagSeller);
+router.post('/orders/:id/comment', protect, orderCommentController.addOrderComment);
 
 module.exports = router;

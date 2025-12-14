@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 const CategorySchema = new Schema({
   name: { type: String, required: true, unique: true },
   description: String,
-  createdAt: { type: Date, default: Date.now }
-});
+  owner: { type: Schema.Types.ObjectId, ref: 'User' }, // Added owner for cascading delete
+}, { timestamps: true });
 
-module.exports = mongoose.model('Category', CategorySchema);
+module.exports = mongoose.models.Category || mongoose.model('Category', CategorySchema);

@@ -1,6 +1,6 @@
 const Product = require('../models/Product');
 const Category = require('../models/Category'); // Ensure Category model is imported
-const Comment = require('../models/Comment');
+const Rating = require('../models/Rating');
 
 // ============ PUBLIC ENDPOINTS ============
 
@@ -42,14 +42,12 @@ exports.get = async (req, res, next) => {
     
     if (!product) return res.status(404).json({ error: 'Product not found' });
     
-    // Get comments for this product
-    const comments = await Comment.find({ product: req.params.id })
-      .populate('author', 'name email')
-      .sort({ createdAt: -1 });
-    
+    // Fetch ratings for the product
+    const ratings = await Rating.find({ product: req.params.id }).populate('user', 'name email');
+
     res.json({
       ...product.toObject(),
-      comments
+      ratings
     });
   } catch (err) { next(err); }
 };
@@ -158,7 +156,7 @@ exports.deleteCategory = async (req, res, next) => {
 // POST /api/seller/products - Create new product (seller only)
 exports.create = async (req, res, next) => {
   try {
-    const { title, description, price, category } = req.body;
+    const { title, description, price, category, deliveryDays } = req.body;
     
     if (!title || !price) {
       return res.status(400).json({ error: 'Title and price are required' });
@@ -168,14 +166,13 @@ exports.create = async (req, res, next) => {
       title,
       description,
       price,
+      deliveryDays: deliveryDays || 1,
+      seller: req.user.id,
       category,
-      seller: req.user.id
     });
     
     await product.save();
-    await product.populate('category', 'name');
-    await product.populate('seller', 'name');
-    
+    await product.populate('seller category');
     res.status(201).json(product);
   } catch (err) { next(err); }
 };

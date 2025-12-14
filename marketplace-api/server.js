@@ -13,6 +13,9 @@ const authRoutes = require('./routes/authRoutes');
 const publicRoutes = require('./routes/publicRoutes');
 const buyerRoutes = require('./routes/buyerRoutes');
 const sellerRoutes = require('./routes/sellerRoutes');
+const buyerOrderRoutes = require('./routes/orderRoutes').buyer;
+const sellerOrderRoutes = require('./routes/orderRoutes').seller;
+const cartRoutes = require('./routes/cartRoutes');
 const { errorHandler } = require('./middleware/errorMiddleware');
 
 const app = express();
@@ -34,6 +37,11 @@ app.use('/api/auth', authRoutes);
 app.use('/api/public', publicRoutes);
 app.use('/api/buyer', buyerRoutes);
 app.use('/api/seller', sellerRoutes);
+
+// Mount new routes
+app.use('/api/buyer/cart', cartRoutes);               // buyer cart endpoints
+app.use('/api/buyer/orders', buyerOrderRoutes);       // buyer order endpoints
+app.use('/api/seller/orders', sellerOrderRoutes);     // seller order endpoints
 
 // Health
 app.get('/health', (req, res) => res.json({ ok: true }));

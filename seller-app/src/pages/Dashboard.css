@@ -1,0 +1,53 @@
+.dashboard {
+  background-color: var(--color-page-bg);
+}
+
+.dashboard__title {
+  font-size: var(--font-size-2xl);
+  margin-bottom: 24px;
+  color: var(--color-dark-text);
+}
+
+.dashboard__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.stat-card {
+  background-color: var(--color-card-bg);
+  padding: 20px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-light-grey);
+}
+
+.stat-card__value {
+  font-size: 28px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+  margin-bottom: 8px;
+}
+
+.stat-card__label {
+  font-size: var(--font-size-base);
+  color: var(--color-label-text);
+}
+
+.dashboard__welcome {
+  background-color: var(--color-card-bg);
+  padding: 32px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-light-grey);
+}
+
+.dashboard__welcome h2 {
+  margin-bottom: 12px;
+  font-size: var(--font-size-xl);
+}
+
+.dashboard__welcome p {
+  color: var(--color-label-text);
+}

@@ -1,0 +1,14 @@
+.orders {
+  background-color: var(--color-card-bg);
+  padding: 32px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.orders h1 {
+  margin-bottom: 16px;
+}
+
+.orders p {
+  color: var(--color-label-text);
+}

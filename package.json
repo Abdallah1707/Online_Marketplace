@@ -1,7 +1,0 @@
-{
-  "dependencies": {
-    "@google/generative-ai": "^0.24.1",
-    "@huggingface/inference": "^4.13.5",
-    "openai": "^6.10.0"
-  }
-}

@@ -1,46 +1,73 @@
-import apiClient from './api'
+// seller-app/src/services/productService.js
+import api from "./api";
+
+/**
+ * Helper: build payload without sending empty category "" (causes ObjectId cast error).
+ * Backend expects category to be a Mongo ObjectId string, or absent/null. [file:13]
+ */
+function buildProductPayload(input) {
+  const payload = {
+    title: input.title?.trim(),
+    description: input.description ?? "",
+    price: input.price,
+  };
+
+  // Only include category if it's a non-empty string
+  if (input.category && String(input.category).trim() !== "") {
+    payload.category = String(input.category).trim();
+  }
+
+  // If you later add delivery estimate in backend, add it here.
+  // e.g., if (input.deliveryEtaDays != null) payload.deliveryEtaDays = input.deliveryEtaDays;
+
+  return payload;
+}
 
 export const productService = {
-  // Get seller's products
-  getSellerProducts: () => {
-    return apiClient.get('/seller/products')
+  /**
+   * Seller: list products for logged-in seller
+   * GET /api/seller/products [file:5]
+   */
+  getSellerProducts: async () => {
+    const { data } = await api.get("/seller/products");
+    return data;
   },
 
-  // Create product
-  createProduct: (title, description, price, category) => {
-    return apiClient.post('/seller/products', {
-      title,
-      description,
-      price,
-      category
-    })
+  /**
+   * Alias for backward compatibility
+   */
+  listMyProducts: async () => {
+    return productService.getSellerProducts();
   },
 
-  // Update product
-  updateProduct: (id, data) => {
-    return apiClient.put(`/seller/products/${id}`, data)
+  /**
+   * Seller: create product
+   * POST /api/seller/products [file:5]
+   */
+  createProduct: async (productInput) => {
+    const payload = buildProductPayload(productInput);
+    const { data } = await api.post("/seller/products", payload);
+    return data;
   },
 
-  // Delete product
-  deleteProduct: (id) => {
-    return apiClient.delete(`/seller/products/${id}`)
+  /**
+   * Seller: update product
+   * PUT /api/seller/products/:id [file:5]
+   */
+  updateProduct: async (productId, productInput) => {
+    const payload = buildProductPayload(productInput);
+    const { data } = await api.put(`/seller/products/${productId}`, payload);
+    return data;
   },
 
-  // Get all categories
-  getCategories: () => {
-    return apiClient.get('/public/categories')
+  /**
+   * Seller: delete product
+   * DELETE /api/seller/products/:id [file:5]
+   */
+  deleteProduct: async (productId) => {
+    const { data } = await api.delete(`/seller/products/${productId}`);
+    return data;
   },
+};
 
-  // Create category
-  createCategory: (name, description) => {
-    return apiClient.post('/seller/categories', {
-      name,
-      description
-    })
-  },
-
-  // Delete category
-  deleteCategory: (id) => {
-    return apiClient.delete(`/seller/categories/${id}`)
-  }
-}
+export default productService;

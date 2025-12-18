@@ -1,17 +1,31 @@
-import apiClient from './api'
+// seller-app/src/services/flagService.js
+import apiClient from "./api";
 
 export const flagService = {
-  // Create flag against a buyer
-  createFlag: (buyerId, reason, orderId) => {
-    return apiClient.post('/seller/flags', {
-      targetUser: buyerId,
+  /**
+   * NEW (matches backend):
+   * POST /api/seller/flags/buyer [file:18]
+   * Body can include buyerId + reason (+ optional orderId if your backend supports it).
+   */
+  flagBuyer: ({ buyerId, reason, orderId }) => {
+    return apiClient.post("/seller/flags/buyer", {
+      buyerId,
       reason,
-      orderId
-    })
+      orderId,
+    });
   },
 
-  // Get seller's flags (you'll need to implement this endpoint on backend)
-  getSellerFlags: () => {
-    return apiClient.get('/seller/flags')
-  }
-}
+  /**
+   * Keep old method so nothing else breaks (your previous frontend used this).
+   * POST /api/seller/flags [file:18]
+   */
+  createFlag: (buyerId, reason, orderId) => {
+    return apiClient.post("/seller/flags", {
+      targetUser: buyerId,
+      reason,
+      orderId,
+    });
+  },
+};
+
+export default flagService;

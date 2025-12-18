@@ -19,9 +19,11 @@ export default function ProductList() {
 
   const fetchProducts = async () => {
     try {
+      console.log("DEBUG: fetching seller products");
+
       setLoading(true)
-      const response = await productService.getSellerProducts()
-      setProducts(response.data)
+      const data = await productService.getSellerProducts()
+      setProducts(data)
       setError(null)
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to load products')
@@ -113,8 +115,10 @@ export default function ProductList() {
 
       {showModal && (
         <AddProductModal 
+          open={showModal}
           onClose={handleModalClose}
           editingProduct={editingProduct}
+          onCreated={fetchProducts}
         />
       )}
     </div>

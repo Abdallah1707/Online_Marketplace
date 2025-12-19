@@ -110,6 +110,12 @@ export const buyerAPI = {
       body: JSON.stringify({ reason }),
     }),
 
+  flagSeller: (sellerId, reason) =>
+    apiRequest(`/buyer/flags/seller`, {
+      method: 'POST',
+      body: JSON.stringify({ seller: sellerId, reason }),
+    }),
+
   // AI Summary
   getAISummary: (productId) =>
     apiRequest(`/public/products/${productId}/summary`),

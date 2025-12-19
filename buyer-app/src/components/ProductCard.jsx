@@ -93,16 +93,29 @@ export default function ProductCard({ product }) {
     if (flagged) return
     setLoadingFlag(true)
     try {
-      // Attempt backend flag if authenticated; ignore failures
-      try {
-        await buyerAPI.flagProduct(productId, 'Flagged by buyer from catalog')
-      } catch (_) { /* noop - local persist still applies */ }
+      // Get seller ID from product
+      const sellerId = product.seller?._id || product.seller?.id || product.seller
+      
+      if (!sellerId) {
+        setToast({ message: 'Unable to flag: Seller information not available', type: 'error' })
+        return
+      }
 
+      // Attempt backend flag if authenticated
+      try {
+        await buyerAPI.flagSeller(sellerId, 'Flagged by buyer from catalog')
+        setToast({ message: 'Seller flagged for review', type: 'success' })
+      } catch (err) {
+        console.error('Flag error:', err)
+        setToast({ message: 'Failed to flag seller', type: 'error' })
+        return
+      }
+
+      // Mark as flagged in local storage
       const flags = JSON.parse(localStorage.getItem('flaggedProducts') || '{}')
       flags[productId] = true
       localStorage.setItem('flaggedProducts', JSON.stringify(flags))
       setFlagged(true)
-      setToast({ message: 'Seller flagged for review', type: 'success' })
     } finally {
       setLoadingFlag(false)
     }

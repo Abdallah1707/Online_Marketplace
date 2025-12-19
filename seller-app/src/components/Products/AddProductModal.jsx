@@ -10,25 +10,43 @@ const initialForm = {
   description: "",
   price: "",
   category: "", // empty means "No category"
+  deliveryDays: "1", // delivery time estimate in days
 };
 
-export default function AddProductModal({ open, onClose, onCreated }) {
+export default function AddProductModal({ open, onClose, onCreated, editingProduct }) {
   const [form, setForm] = useState(initialForm);
   const [categories, setCategories] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
+  const isEditing = !!editingProduct;
+
   const isValid = useMemo(() => {
     if (!form.title.trim()) return false;
     if (form.price === "" || Number.isNaN(Number(form.price))) return false;
+    if (form.deliveryDays === "" || Number.isNaN(Number(form.deliveryDays)) || Number(form.deliveryDays) < 1) return false;
     return true;
-  }, [form.title, form.price]);
+  }, [form.title, form.price, form.deliveryDays]);
 
   useEffect(() => {
     if (!open) return;
 
     setError("");
+    
+    // Load product data if editing
+    if (editingProduct) {
+      setForm({
+        title: editingProduct.title || "",
+        description: editingProduct.description || "",
+        price: editingProduct.price?.toString() || "",
+        category: editingProduct.category?._id || editingProduct.category || "",
+        deliveryDays: editingProduct.deliveryDays?.toString() || "1",
+      });
+    } else {
+      setForm(initialForm);
+    }
+
     setLoadingCategories(true);
 
     categoryService
@@ -39,7 +57,7 @@ export default function AddProductModal({ open, onClose, onCreated }) {
         setError(e?.response?.data?.error || e?.message || "Failed to load categories");
       })
       .finally(() => setLoadingCategories(false));
-  }, [open]);
+  }, [open, editingProduct]);
 
   if (!open) return null;
 
@@ -58,15 +76,20 @@ export default function AddProductModal({ open, onClose, onCreated }) {
         description: form.description,
         price: Number(form.price),
         category: form.category, // can be "" -> productService will omit
+        deliveryDays: Number(form.deliveryDays),
       };
 
-      const created = await productService.createProduct(payload);
+      if (isEditing) {
+        await productService.updateProduct(editingProduct._id || editingProduct.id, payload);
+      } else {
+        await productService.createProduct(payload);
+      }
 
       setForm(initialForm);
-      onCreated?.(created);
+      onCreated?.();
       onClose?.();
     } catch (err) {
-      setError(err?.response?.data?.error || err?.message || "Failed to create product");
+      setError(err?.response?.data?.error || err?.message || `Failed to ${isEditing ? 'update' : 'create'} product`);
     } finally {
       setSubmitting(false);
     }
@@ -77,8 +100,12 @@ export default function AddProductModal({ open, onClose, onCreated }) {
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal__header">
           <div>
-            <h2>Add New Product</h2>
-            <p className="modal__subtitle">Fill in the details below to add a new product to your inventory</p>
+            <h2>{isEditing ? 'Edit Product' : 'Add New Product'}</h2>
+            <p className="modal__subtitle">
+              {isEditing 
+                ? 'Update the details of your product' 
+                : 'Fill in the details below to add a new product to your inventory'}
+            </p>
           </div>
           <button className="modal__close" onClick={onClose} aria-label="Close">
             ✕
@@ -150,12 +177,32 @@ export default function AddProductModal({ open, onClose, onCreated }) {
             </div>
           </div>
 
+          <div className="form-group">
+            <label className="form-label">
+              Delivery Time Estimate <span className="required">*</span>
+            </label>
+            <div className="input-with-prefix">
+              <input
+                className="form-input"
+                value={form.deliveryDays}
+                onChange={update("deliveryDays")}
+                type="number"
+                min="1"
+                step="1"
+                placeholder="Enter estimated delivery days"
+              />
+              <span className="input-suffix">days</span>
+            </div>
+          </div>
+
           <div className="modal__footer">
             <button type="button" className="btn btn-secondary" onClick={onClose}>
               Cancel
             </button>
             <button type="submit" className="btn btn-primary" disabled={!isValid || submitting}>
-              {submitting ? "Creating..." : "Create Product"}
+              {submitting 
+                ? (isEditing ? "Updating..." : "Creating...") 
+                : (isEditing ? "Update Product" : "Create Product")}
             </button>
           </div>
         </form>

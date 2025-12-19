@@ -17,6 +17,9 @@ export default function ProductCard({
       <div className="product-card__content">
         <h3 className="product-card__title">{product.title}</h3>
         <p className="product-card__category">{product.category?.name || 'Uncategorized'}</p>
+        {product.deliveryDays && (
+          <p className="product-card__delivery">🚚 {product.deliveryDays} day{product.deliveryDays !== 1 ? 's' : ''} delivery</p>
+        )}
 
         <div className="product-card__footer">
           <div className="product-card__price">${product.price}</div>

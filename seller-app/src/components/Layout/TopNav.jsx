@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { removeToken, removeSeller } from '../../utils/localStorage'
 import { productService } from '../../services/productService'
 import { orderService } from '../../services/orderService'
+import { authService } from '../../services/authService'
 import './TopNav.css'
 
 export default function TopNav({ activeTab }) {
@@ -123,6 +124,31 @@ export default function TopNav({ activeTab }) {
     removeToken()
     removeSeller()
     navigate('/login')
+  }
+
+  const handleDeleteAccount = async () => {
+    const confirmed = window.confirm(
+      'Are you sure you want to delete your account? This action cannot be undone. All your products and data will be permanently deleted.'
+    )
+    
+    if (!confirmed) return
+
+    const doubleCheck = window.confirm(
+      'This is your final warning. Are you absolutely sure you want to permanently delete your account?'
+    )
+
+    if (!doubleCheck) return
+
+    try {
+      await authService.deleteAccount()
+      alert('Your account has been successfully deleted.')
+      removeToken()
+      removeSeller()
+      navigate('/login')
+    } catch (error) {
+      const errorMsg = error.response?.data?.error || error.message || 'Failed to delete account'
+      alert(`Error: ${errorMsg}`)
+    }
   }
 
   const tabs = ['Dashboard', 'Products', 'Categories', 'Orders']
@@ -383,6 +409,10 @@ export default function TopNav({ activeTab }) {
                 <button className="dropdown-item logout-item" onClick={handleLogout}>
                   <span className="item-icon">🚪</span>
                   <span>Logout</span>
+                </button>
+                <button className="dropdown-item delete-account-item" onClick={handleDeleteAccount}>
+                  <span className="item-icon">🗑️</span>
+                  <span>Delete Account</span>
                 </button>
               </div>
             </div>

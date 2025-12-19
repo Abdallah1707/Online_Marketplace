@@ -17,8 +17,10 @@ function buildProductPayload(input) {
     payload.category = String(input.category).trim();
   }
 
-  // If you later add delivery estimate in backend, add it here.
-  // e.g., if (input.deliveryEtaDays != null) payload.deliveryEtaDays = input.deliveryEtaDays;
+  // Add delivery estimate in days
+  if (input.deliveryDays != null) {
+    payload.deliveryDays = Number(input.deliveryDays);
+  }
 
   return payload;
 }

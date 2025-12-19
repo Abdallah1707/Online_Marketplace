@@ -197,6 +197,15 @@
   pointer-events: none;
 }
 
+.input-suffix {
+  position: absolute;
+  right: 14px;
+  color: var(--color-label-text);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  pointer-events: none;
+}
+
 .form-input.with-prefix {
   padding-left: 32px;
 }

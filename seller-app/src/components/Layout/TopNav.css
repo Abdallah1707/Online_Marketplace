@@ -367,6 +367,15 @@
   background-color: var(--color-sold-out-bg);
 }
 
+.delete-account-item {
+  color: #dc2626;
+}
+
+.delete-account-item:hover {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
 /* Account Menu */
 .account-menu {
   width: 280px;

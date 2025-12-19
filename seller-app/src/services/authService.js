@@ -19,5 +19,9 @@ export const authService = {
 
   getAllUsers: () => {
     return apiClient.get('/auth/users')
+  },
+
+  deleteAccount: () => {
+    return apiClient.delete('/auth/delete')
   }
 }

@@ -1,7 +1,12 @@
+import { useState } from 'react'
+import Toast from '../components/Toast'
 import Navbar from '../components/Navbar'
 import '../styles/ProductDetail.css'
 
 export default function ProductDetail() {
+  const [quantity, setQuantity] = useState(1)
+  const [toast, setToast] = useState(null)
+
   const product = {
     id: 1,
     name: 'Apple iPad (Gen 10)',
@@ -34,8 +39,43 @@ export default function ProductDetail() {
     ],
   }
 
+  const handleAddToCart = () => {
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]')
+    const orderItem = {
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      qty: quantity,
+      image: product.image,
+      category: product.category,
+      status: 'pending',
+      date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+    }
+
+    const existingItem = cart.find(item => item.id === orderItem.id)
+    if (existingItem) {
+      existingItem.qty += quantity
+    } else {
+      cart.push(orderItem)
+    }
+
+    localStorage.setItem('cart', JSON.stringify(cart))
+    setToast({ message: `Added ${quantity} item(s) to cart!`, type: 'success' })
+    setQuantity(1)
+  }
+
+  const handleQuantityChange = (value) => {
+    const num = parseInt(value) || 1
+    setQuantity(Math.max(1, num))
+  }
+
+  const handleIncrement = () => setQuantity(q => q + 1)
+  const handleDecrement = () => setQuantity(q => (q > 1 ? q - 1 : 1))
+
   return (
     <div className="buyer-page">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      
       <Navbar />
 
       <main className="detail-main">
@@ -119,12 +159,12 @@ export default function ProductDetail() {
 
             <div className="actions-section">
               <div className="quantity-picker">
-                <button type="button">−</button>
-                <input type="number" value="1" min="1" />
-                <button type="button">+</button>
+                <button type="button" onClick={handleDecrement}>−</button>
+                <input type="number" value={quantity} min="1" onChange={(e) => handleQuantityChange(e.target.value)} />
+                <button type="button" onClick={handleIncrement}>+</button>
               </div>
 
-              <button className="add-to-cart-large" type="button">
+              <button className="add-to-cart-large" type="button" onClick={handleAddToCart}>
                 Add to Cart
               </button>
 

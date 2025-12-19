@@ -55,7 +55,7 @@ export default function Login() {
         <div className="auth-header">
           <div className="logo-section">
             <div className="logo-circle-large">S</div>
-            <h1>Sellora</h1>
+            <h1>Buy It</h1>
           </div>
           <h2>Welcome Back</h2>
           <p className="auth-subtitle">Sign in to continue shopping</p>

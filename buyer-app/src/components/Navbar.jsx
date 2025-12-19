@@ -29,7 +29,7 @@ export default function Navbar({ active }) {
     <nav className="navbar">
       <div className="nav-left">
         <div className="logo-circle">S</div>
-        <span className="app-name">Sellora</span>
+        <span className="app-name">Buy It</span>
       </div>
 
       <div className="nav-center">

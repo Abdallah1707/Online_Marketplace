@@ -39,9 +39,17 @@ export default function Profile() {
     setIsEditing(false)
   }
 
+  const handleDeleteAccount = () => {
+    if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      localStorage.removeItem('cart')
+      navigate('/signup')
+    }
+  }
+
   const handleLogout = () => {
     localStorage.removeItem('token')
-    localStorage.removeItem('user')
     navigate('/login')
   }
 
@@ -68,7 +76,6 @@ export default function Profile() {
 
   const sections = [
     { label: 'Personal Info', icon: '👤' },
-    { label: 'Wishlist', icon: '♡' },
     { label: 'Notifications', icon: '🔔' },
   ]
 
@@ -110,10 +117,6 @@ export default function Profile() {
                 </button>
               ))}
             </nav>
-
-            <button className="logout-btn" type="button">
-              Logout
-            </button>
           </aside>
 
           <section className="profile-section">
@@ -181,6 +184,9 @@ export default function Profile() {
               )}
               <button className="logout-btn" type="button" onClick={handleLogout}>
                 Logout
+              </button>
+              <button className="delete-btn" type="button" onClick={handleDeleteAccount} style={{ background: '#dc2626', marginTop: '8px' }}>
+                Delete Account
               </button>
             </div>
 

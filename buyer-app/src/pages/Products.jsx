@@ -18,7 +18,6 @@ export default function Products() {
     categories: new Set(),
     priceMin: '',
     priceMax: '',
-    badge: 'any', // any | sale | best | new
     ratingMin: 'any', // any | 4 | 5
   })
 
@@ -60,18 +59,20 @@ export default function Products() {
   const updateFilter = (key, value) => setFilters((prev) => ({ ...prev, [key]: value }))
 
   const filtered = products.filter((p) => {
-    // Category filter
-    if (filters.categories.size && !filters.categories.has(p.category)) return false
+    // Category filter - handle object or string, case-insensitive
+    if (filters.categories.size) {
+      const productCategoryRaw = typeof p.category === 'object' ? (p.category?.name) : p.category
+      const productCategory = (productCategoryRaw || 'General').toLowerCase()
+      const selected = Array.from(filters.categories).map((c) => (c || '').toLowerCase())
+      if (!selected.includes(productCategory)) return false
+    }
     // Price filter
     if (filters.priceMin !== '' && p.price < Number(filters.priceMin)) return false
     if (filters.priceMax !== '' && p.price > Number(filters.priceMax)) return false
-    // Badge filter
-    if (filters.badge !== 'any') {
-      if ((p.badgeType || 'none') !== filters.badge) return false
-    }
-    // Search by query param
+    // Search by query param (supports title or name)
     if (q) {
-      if (!p.name.toLowerCase().includes(q)) return false
+      const productName = ((p.title || p.name || '') + '').toLowerCase()
+      if (!productName.includes(q)) return false
     }
     // Minimum rating
     if (filters.ratingMin !== 'any') {
@@ -96,6 +97,11 @@ export default function Products() {
         return (b.reviews ?? 0) - (a.reviews ?? 0)
     }
   })
+  const availableCategories = Array.from(new Set(products.map((p) => {
+    const raw = typeof p.category === 'object' ? (p.category?.name) : p.category
+    return (raw || 'General')
+  }))).sort((a, b) => a.localeCompare(b))
+
   return (
     <div className="buyer-page">
       <Navbar active="Products" />
@@ -181,7 +187,6 @@ export default function Products() {
                     categories: new Set(),
                     priceMin: '',
                     priceMax: '',
-                    badge: 'any',
                     ratingMin: 'any',
                   })
                 }
@@ -191,7 +196,7 @@ export default function Products() {
             </div>
             <div className="filter-group">
               <span className="filter-label">Category</span>
-              {['Smartphones', 'Tablets', 'Laptops', 'Audio', 'Accessories'].map((c) => (
+              {(availableCategories.length ? availableCategories : ['Smartphones', 'Tablets', 'Laptops', 'Audio', 'Accessories']).map((c) => (
                 <button
                   key={c}
                   type="button"
@@ -221,19 +226,6 @@ export default function Products() {
                 value={filters.priceMax}
                 onChange={(e) => updateFilter('priceMax', e.target.value)}
               />
-            </div>
-            <div className="filter-group">
-              <span className="filter-label">Badge</span>
-              <select
-                className="badge-select"
-                value={filters.badge}
-                onChange={(e) => updateFilter('badge', e.target.value)}
-              >
-                <option value="any">Any</option>
-                <option value="sale">On Sale</option>
-                <option value="best">Best Seller</option>
-                <option value="new">New</option>
-              </select>
             </div>
           </div>
         )}

@@ -109,6 +109,10 @@ export const buyerAPI = {
       method: 'POST',
       body: JSON.stringify({ reason }),
     }),
+
+  // AI Summary
+  getAISummary: (productId) =>
+    apiRequest(`/public/products/${productId}/summary`),
 };
 
 // Seller APIs (auth required)

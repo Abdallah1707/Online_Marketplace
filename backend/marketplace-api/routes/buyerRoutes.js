@@ -11,6 +11,9 @@ router.post('/orders', orderController.createOrder);
 router.get('/orders/:id', orderController.getOrder);
 router.post('/products/:id/rate', protect, ratingController.rateProduct);
 router.post('/flags/seller', protect, flagController.flagSeller);
+router.post('/flags/product', protect, flagController.flagProduct);
+router.get('/flags', flagController.getBuyerFlags);
+router.delete('/flags/:id', flagController.deleteBuyerFlag);
 router.post('/orders/:id/comment', protect, orderCommentController.addOrderComment);
 
 module.exports = router;

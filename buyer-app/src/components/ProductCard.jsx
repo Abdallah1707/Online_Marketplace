@@ -12,6 +12,7 @@ export default function ProductCard({ product }) {
   const [aiSummary, setAiSummary] = useState('')
   const [loadingSummary, setLoadingSummary] = useState(false)
   const [flagged, setFlagged] = useState(false)
+  const [flagResolved, setFlagResolved] = useState(false)
   const [loadingFlag, setLoadingFlag] = useState(false)
   
   // Handle both backend (title) and frontend (name) field names
@@ -21,14 +22,53 @@ export default function ProductCard({ product }) {
   const productId = product._id || product.id
 
   useEffect(() => {
-    // Load persisted rating/comment
+    // Load persisted rating/comment from localStorage
     const ratings = JSON.parse(localStorage.getItem('ratings') || '{}')
     const comments = JSON.parse(localStorage.getItem('comments') || '{}')
-    const flags = JSON.parse(localStorage.getItem('flaggedProducts') || '{}')
     if (ratings[productId]) setRating(ratings[productId])
     if (comments[productId]) setSavedComment(comments[productId])
-    if (flags[productId]) setFlagged(true)
-  }, [productId])
+
+    // Check flag status from backend
+    const checkFlagStatus = async () => {
+      try {
+        const flags = await buyerAPI.getBuyerFlags()
+        
+        const productFlag = flags.find(f => {
+          const flagProductId = (f.product?._id || f.product?.id || f.product || '').toString()
+          return flagProductId === productId
+        })
+
+        if (productFlag) {
+          setFlagged(true)
+          setFlagResolved(productFlag.resolved)
+          // Store flag ID for later deletion
+          const localFlags = JSON.parse(localStorage.getItem('flaggedProducts') || '{}')
+          localFlags[productId] = { 
+            flagged: true, 
+            resolved: productFlag.resolved, 
+            flagId: productFlag._id
+          }
+          localStorage.setItem('flaggedProducts', JSON.stringify(localFlags))
+        } else {
+          // No flag found in backend, clear local storage
+          const localFlags = JSON.parse(localStorage.getItem('flaggedProducts') || '{}')
+          if (localFlags[productId]) {
+            delete localFlags[productId]
+            localStorage.setItem('flaggedProducts', JSON.stringify(localFlags))
+          }
+          setFlagged(false)
+          setFlagResolved(false)
+        }
+      } catch (err) {
+        // If API fails, don't show any flags to avoid confusion
+        console.error('Failed to fetch flags:', err)
+        setFlagged(false)
+        setFlagResolved(false)
+      }
+    }
+
+    checkFlagStatus()
+  }, [productId, product.seller])
   
   const handleAddToCart = () => {
     // Get current cart from localStorage
@@ -90,32 +130,53 @@ export default function ProductCard({ product }) {
   }
 
   const handleFlagSeller = async () => {
-    if (flagged) return
     setLoadingFlag(true)
     try {
-      // Get seller ID from product
-      const sellerId = product.seller?._id || product.seller?.id || product.seller
-      
-      if (!sellerId) {
-        setToast({ message: 'Unable to flag: Seller information not available', type: 'error' })
+      // If already flagged, unflag it
+      if (flagged) {
+        // Get flag ID from localStorage
+        const localFlags = JSON.parse(localStorage.getItem('flaggedProducts') || '{}')
+        const flagData = localFlags[productId]
+        
+        if (flagData?.flagId) {
+          // Delete from backend
+          try {
+            await buyerAPI.deleteBuyerFlag(flagData.flagId)
+          } catch (err) {
+            console.error('Failed to delete flag from backend:', err)
+          }
+        }
+        
+        // Remove from localStorage
+        delete localFlags[productId]
+        localStorage.setItem('flaggedProducts', JSON.stringify(localFlags))
+        setFlagged(false)
+        setFlagResolved(false)
+        setToast({ message: 'Product unflagged', type: 'success' })
         return
       }
 
-      // Attempt backend flag if authenticated
+      // Create flag for this specific product
       try {
-        await buyerAPI.flagSeller(sellerId, 'Flagged by buyer from catalog')
-        setToast({ message: 'Seller flagged for review', type: 'success' })
+        const response = await buyerAPI.flagProduct(productId, 'Flagged by buyer from catalog')
+        setToast({ message: 'Product flagged for review', type: 'success' })
+        
+        // Store in localStorage with flag ID
+        const flags = JSON.parse(localStorage.getItem('flaggedProducts') || '{}')
+        flags[productId] = { 
+          flagged: true, 
+          resolved: false, 
+          flagId: response._id
+        }
+        localStorage.setItem('flaggedProducts', JSON.stringify(flags))
+        setFlagged(true)
+        setFlagResolved(false)
       } catch (err) {
         console.error('Flag error:', err)
-        setToast({ message: 'Failed to flag seller', type: 'error' })
+        const errorMsg = err.response?.data?.error || err.message || 'Failed to flag product'
+        setToast({ message: errorMsg, type: 'error' })
         return
       }
-
-      // Mark as flagged in local storage
-      const flags = JSON.parse(localStorage.getItem('flaggedProducts') || '{}')
-      flags[productId] = true
-      localStorage.setItem('flaggedProducts', JSON.stringify(flags))
-      setFlagged(true)
     } finally {
       setLoadingFlag(false)
     }
@@ -217,12 +278,12 @@ export default function ProductCard({ product }) {
         <div className="product-actions">
           <button
             type="button"
-            className={`flag-btn ${flagged ? 'flagged' : ''}`}
+            className={`flag-btn ${flagged ? (flagResolved ? 'resolved' : 'flagged') : ''}`}
             onClick={handleFlagSeller}
-            disabled={flagged || loadingFlag}
-            title={flagged ? 'Already flagged' : 'Flag seller'}
+            disabled={loadingFlag}
+            title={flagged ? (flagResolved ? 'Resolved - Click to unflag' : 'Flagged - Click to unflag') : 'Flag seller'}
           >
-            {flagged ? '✅ Flagged' : '🚩 Flag seller'}
+            {loadingFlag ? '⏳...' : flagged ? (flagResolved ? '✅ Resolved' : '🚩 Flagged') : '🚩 Flag seller'}
           </button>
         </div>
       </div>

@@ -162,6 +162,7 @@ export default function Flags() {
                 <div className="flag-info">
                   <h3 className="flag-title">
                     {flag.resolved ? 'Resolved Flag' : 'Active Flag'}
+                    {flag.product && <span className="flag-product-name"> - {flag.product.title}</span>}
                   </h3>
                   <p className="flag-reporter">
                     Reported by: <strong>{flag.reporter?.name || 'Anonymous'}</strong>
@@ -169,6 +170,12 @@ export default function Flags() {
                       <span className="reporter-email"> ({flag.reporter.email})</span>
                     )}
                   </p>
+                  {flag.product && (
+                    <p className="flag-type">Type: Product Flag</p>
+                  )}
+                  {flag.target && (
+                    <p className="flag-type">Type: Seller Flag</p>
+                  )}
                   <span className="flag-time">{formatDate(flag.createdAt)}</span>
                 </div>
                 <div className="flag-status">

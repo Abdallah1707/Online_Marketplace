@@ -197,11 +197,30 @@
   background: #fef2f2;
 }
 
-.flag-btn.flagged,
-.flag-btn:disabled {
+.flag-btn.flagged {
+  color: #b91c1c;
+  border-color: #fecaca;
+  background: #fef2f2;
+  cursor: pointer;
+}
+
+.flag-btn.flagged:hover {
+  background: #fee2e2;
+}
+
+.flag-btn.resolved {
   color: #065f46;
   border-color: #a7f3d0;
   background: #ecfdf5;
+  cursor: pointer;
+}
+
+.flag-btn.resolved:hover {
+  background: #d1fae5;
+}
+
+.flag-btn:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
 }
 

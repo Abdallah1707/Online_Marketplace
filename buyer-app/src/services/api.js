@@ -116,6 +116,19 @@ export const buyerAPI = {
       body: JSON.stringify({ seller: sellerId, reason }),
     }),
 
+  flagProduct: (productId, reason) =>
+    apiRequest(`/buyer/flags/product`, {
+      method: 'POST',
+      body: JSON.stringify({ product: productId, reason }),
+    }),
+
+  getBuyerFlags: () => apiRequest('/buyer/flags'),
+
+  deleteBuyerFlag: (flagId) =>
+    apiRequest(`/buyer/flags/${flagId}`, {
+      method: 'DELETE',
+    }),
+
   // AI Summary
   getAISummary: (productId) =>
     apiRequest(`/public/products/${productId}/summary`),

@@ -66,7 +66,7 @@ exports.resolveFlag = async (req, res, next) => {
     if (!flag) return res.status(404).json({ error: 'Flag not found' });
     
     // Only the flagged seller can resolve their own flags
-    if (flag.target.toString() !== sellerId) {
+    if (flag.target.toString() !== sellerId.toString()) {
       return res.status(403).json({ error: 'You can only resolve flags against yourself' });
     }
     
@@ -87,7 +87,7 @@ exports.deleteFlag = async (req, res, next) => {
     if (!flag) return res.status(404).json({ error: 'Flag not found' });
     
     // Only the flagged seller can delete their own flags
-    if (flag.target.toString() !== sellerId) {
+    if (flag.target.toString() !== sellerId.toString()) {
       return res.status(403).json({ error: 'You can only delete flags against yourself' });
     }
     

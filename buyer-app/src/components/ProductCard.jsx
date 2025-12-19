@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import Toast from './Toast'
-import { buyerAPI } from '../services/api'
+import { buyerAPI, publicAPI } from '../services/api'
 import '../styles/ProductCard.css'
 
 export default function ProductCard({ product }) {
@@ -8,7 +8,7 @@ export default function ProductCard({ product }) {
   const [rating, setRating] = useState(0)
   const [hoverRating, setHoverRating] = useState(0)
   const [comment, setComment] = useState('')
-  const [savedComment, setSavedComment] = useState('')
+  const [savedComments, setSavedComments] = useState([])
   const [aiSummary, setAiSummary] = useState('')
   const [loadingSummary, setLoadingSummary] = useState(false)
   const [flagged, setFlagged] = useState(false)
@@ -22,11 +22,28 @@ export default function ProductCard({ product }) {
   const productId = product._id || product.id
 
   useEffect(() => {
-    // Load persisted rating/comment from localStorage
+    // Load persisted rating from localStorage
     const ratings = JSON.parse(localStorage.getItem('ratings') || '{}')
-    const comments = JSON.parse(localStorage.getItem('comments') || '{}')
     if (ratings[productId]) setRating(ratings[productId])
-    if (comments[productId]) setSavedComment(comments[productId])
+
+    // Fetch comments from backend
+    const fetchComments = async () => {
+      try {
+        console.log(`Fetching comments for product ${productId}`);
+        const comments = await publicAPI.getProductComments(productId)
+        console.log(`Received comments from backend:`, comments);
+        setSavedComments(comments)
+      } catch (err) {
+        console.error('Failed to fetch comments:', err)
+        // Fall back to localStorage if available
+        const localComments = JSON.parse(localStorage.getItem('comments') || '{}')
+        if (Array.isArray(localComments[productId])) {
+          setSavedComments(localComments[productId])
+        }
+      }
+    }
+
+    fetchComments()
 
     // Check flag status from backend
     const checkFlagStatus = async () => {
@@ -107,23 +124,58 @@ export default function ProductCard({ product }) {
     setToast({ message: `Rated ${value} stars`, type: 'success' })
   }
 
-  const handleSaveComment = () => {
-    const comments = JSON.parse(localStorage.getItem('comments') || '{}')
-    const updated = { ...comments, [productId]: comment.trim() }
-    localStorage.setItem('comments', JSON.stringify(updated))
-    setSavedComment(comment.trim())
-    setComment('')
-    setToast({ message: 'Comment saved', type: 'success' })
+  const handleSaveComment = async () => {
+    if (!comment.trim()) return
+    try {
+      const commentText = comment.trim()
+      console.log(`\n=== FRONTEND COMMENT SAVE ===`)
+      console.log(`Product ID: ${productId}`)
+      console.log(`Comment text: "${commentText}"`)
+      console.log(`Comment length: ${commentText.length} chars`)
+      console.log(`Sending to backend endpoint: /buyer/products/${productId}/comment`)
+      
+      // Send comment to backend
+      const response = await buyerAPI.postProductComment(productId, commentText)
+      console.log(`\n=== RESPONSE RECEIVED ===`)
+      console.log(`Full response:`, response)
+      console.log(`Response author object:`, response.author)
+      console.log(`Response author name:`, response.author?.name)
+      console.log(`Response body:`, response.body)
+      
+      // Update savedComments with the response from backend (includes author info)
+      const authorName = response.author?.name || 'Anonymous'
+      console.log(`Using author name: "${authorName}"`)
+      
+      const newComment = {
+        text: response.body,
+        author: authorName,
+        createdAt: response.createdAt,
+        _id: response._id
+      }
+      console.log(`New comment object:`, newComment)
+      setSavedComments([newComment, ...savedComments])
+      
+      setComment('')
+      console.log(`=== COMMENT SAVED SUCCESSFULLY ===\n`)
+      setToast({ message: 'Comment saved', type: 'success' })
+    } catch (err) {
+      console.error('Failed to save comment:', err)
+      console.log(`=== COMMENT SAVE FAILED ===\n`)
+      setToast({ message: 'Failed to save comment', type: 'error' })
+    }
   }
 
   const handleGetAISummary = async () => {
     try {
       setLoadingSummary(true)
+      // Try backend API to get summary
       const res = await buyerAPI.getAISummary(productId)
       setAiSummary(res.summary || 'No summary available yet.')
       setToast({ message: 'AI summary ready', type: 'success' })
     } catch (e) {
+      console.error('Failed to load AI summary:', e)
       setToast({ message: 'Failed to load AI summary', type: 'error' })
+      setAiSummary('Unable to generate summary at this time.')
     } finally {
       setLoadingSummary(false)
     }
@@ -242,20 +294,38 @@ export default function ProductCard({ product }) {
 
       {/* Comments, AI Summary & Flag */}
       <div style={{ padding: '10px 12px' }}>
-        {savedComment ? (
-          <div style={{ background: '#f3f4f6', padding: '8px', borderRadius: '6px', marginBottom: '8px' }}>
-            <strong style={{ fontSize: '12px' }}>Your comment:</strong>
-            <p style={{ margin: 0, fontSize: '13px' }}>{savedComment}</p>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '8px' }}>
-            <input
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              placeholder="Add a comment..."
-              style={{ flex: 1, padding: '6px 8px', fontSize: '12px', border: '1px solid #d1d5db', borderRadius: '6px' }}
-            />
-            <button type="button" onClick={handleSaveComment} style={{ padding: '6px 10px', fontSize: '12px', background: '#3b82f6', color: '#fff', border: 0, borderRadius: '6px' }}>Save</button>
+        <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '8px' }}>
+          <input
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder="Add a comment..."
+            style={{ flex: 1, padding: '6px 8px', fontSize: '12px', border: '1px solid #d1d5db', borderRadius: '6px' }}
+          />
+          <button
+            type="button"
+            onClick={handleSaveComment}
+            style={{ padding: '6px 10px', fontSize: '12px', background: '#3b82f6', color: '#fff', border: 0, borderRadius: '6px' }}
+          >
+            Save
+          </button>
+        </div>
+        {savedComments.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '8px' }}>
+            {savedComments.map((c, idx) => (
+              <div key={idx} style={{ background: '#f3f4f6', padding: '8px', borderRadius: '6px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                  <strong style={{ fontSize: '12px', color: '#1f2937' }}>
+                    {typeof c.author === 'object' ? (c.author?.name || 'Anonymous') : (c.author || 'Anonymous')}
+                  </strong>
+                  <div style={{ fontSize: '11px', color: '#9ca3af' }}>
+                    {new Date(c.createdAt).toLocaleString()}
+                  </div>
+                </div>
+                <p style={{ margin: 0, fontSize: '13px', color: '#374151', wordWrap: 'break-word' }}>
+                  {c.text || c.body}
+                </p>
+              </div>
+            ))}
           </div>
         )}
 

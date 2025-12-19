@@ -25,6 +25,34 @@ export default function Flags() {
     }
   }
 
+  const handleResolveFlag = async (flagId) => {
+    if (!window.confirm('Mark this flag as resolved? This indicates you have addressed the issue.')) {
+      return
+    }
+
+    try {
+      await apiClient.patch(`/seller/flags/${flagId}/resolve`)
+      // Update local state
+      setFlags(flags.map(f => f._id === flagId ? { ...f, resolved: true } : f))
+    } catch (err) {
+      setError(err.response?.data?.error || err.message || 'Failed to resolve flag')
+    }
+  }
+
+  const handleDeleteFlag = async (flagId) => {
+    if (!window.confirm('Are you sure you want to delete this flag? This action cannot be undone.')) {
+      return
+    }
+
+    try {
+      await apiClient.delete(`/seller/flags/${flagId}`)
+      // Remove from local state
+      setFlags(flags.filter(f => f._id !== flagId))
+    } catch (err) {
+      setError(err.response?.data?.error || err.message || 'Failed to delete flag')
+    }
+  }
+
   const filteredFlags = flags.filter(flag => {
     if (filter === 'resolved') return flag.resolved
     if (filter === 'unresolved') return !flag.resolved
@@ -153,6 +181,23 @@ export default function Flags() {
               <div className="flag-content">
                 <h4>Reason:</h4>
                 <p className="flag-reason">{flag.reason}</p>
+              </div>
+
+              <div className="flag-actions-buttons">
+                {!flag.resolved && (
+                  <button 
+                    className="btn-resolve"
+                    onClick={() => handleResolveFlag(flag._id)}
+                  >
+                    ✓ Mark as Resolved
+                  </button>
+                )}
+                <button 
+                  className="btn-delete"
+                  onClick={() => handleDeleteFlag(flag._id)}
+                >
+                  🗑️ Delete
+                </button>
               </div>
 
               {!flag.resolved && (

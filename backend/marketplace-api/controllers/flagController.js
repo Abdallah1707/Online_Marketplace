@@ -56,3 +56,42 @@ exports.getSellerFlags = async (req, res, next) => {
     res.json(flags);
   } catch (err) { next(err); }
 };
+
+exports.resolveFlag = async (req, res, next) => {
+  try {
+    const flagId = req.params.id;
+    const sellerId = req.user.id;
+    
+    const flag = await Flag.findById(flagId);
+    if (!flag) return res.status(404).json({ error: 'Flag not found' });
+    
+    // Only the flagged seller can resolve their own flags
+    if (flag.target.toString() !== sellerId) {
+      return res.status(403).json({ error: 'You can only resolve flags against yourself' });
+    }
+    
+    flag.resolved = true;
+    await flag.save();
+    await flag.populate('reporter', 'name email');
+    
+    res.json(flag);
+  } catch (err) { next(err); }
+};
+
+exports.deleteFlag = async (req, res, next) => {
+  try {
+    const flagId = req.params.id;
+    const sellerId = req.user.id;
+    
+    const flag = await Flag.findById(flagId);
+    if (!flag) return res.status(404).json({ error: 'Flag not found' });
+    
+    // Only the flagged seller can delete their own flags
+    if (flag.target.toString() !== sellerId) {
+      return res.status(403).json({ error: 'You can only delete flags against yourself' });
+    }
+    
+    await Flag.findByIdAndDelete(flagId);
+    res.json({ message: 'Flag deleted successfully' });
+  } catch (err) { next(err); }
+};

@@ -1,5 +1,3 @@
-// Minimal placeholder AI service for comment summarization
-// Replace with a real AI integration (OpenAI, Azure, etc.) as needed.
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const Rating = require('../models/Rating'); // Changed from Comment to Rating
 
@@ -18,9 +16,7 @@ exports.summarizeCommentsForProduct = async (productId) => {
     }
 
     const commentTexts = ratings.map(r => r.comment).join('\n');
-    // ...existing code...
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-// ...existing code...
     const prompt = `Summarize the following product comments in a concise paragraph:\n\n${commentTexts}`;
     const result = await model.generateContent(prompt);
     const summary = result.response.text().trim();

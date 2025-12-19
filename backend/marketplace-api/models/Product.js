@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 
 const ProductSchema = new Schema({
   title: { type: String, required: true, unique: true, trim: true },
-  description: {String},
+  description: { type: String },
   price: { type: Number, required: true },
   deliveryDays: { type: Number, default: 1 }, // Estimated delivery time in days
   seller: { type: Schema.Types.ObjectId, ref: 'User', required: true },

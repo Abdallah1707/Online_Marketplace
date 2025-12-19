@@ -6,7 +6,7 @@ import { orderService } from '../../services/orderService'
 import { authService } from '../../services/authService'
 import './TopNav.css'
 
-export default function TopNav({ activeTab }) {
+export default function TopNav({ activeTab, setIsAuthenticated }) {
   const navigate = useNavigate()
   const [showNotifications, setShowNotifications] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
@@ -123,6 +123,7 @@ export default function TopNav({ activeTab }) {
   const handleLogout = () => {
     removeToken()
     removeSeller()
+    setIsAuthenticated(false)
     navigate('/login')
   }
 
@@ -144,6 +145,7 @@ export default function TopNav({ activeTab }) {
       alert('Your account has been successfully deleted.')
       removeToken()
       removeSeller()
+      setIsAuthenticated(false)
       navigate('/login')
     } catch (error) {
       const errorMsg = error.response?.data?.error || error.message || 'Failed to delete account'

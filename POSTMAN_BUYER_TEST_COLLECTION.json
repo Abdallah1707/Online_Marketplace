@@ -1,0 +1,869 @@
+{
+	"info": {
+		"_postman_id": "buyer-test-collection-2024",
+		"name": "Buyer App - Complete Test Suite",
+		"description": "Comprehensive test collection for all buyer app functionalities",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000/api",
+			"type": "string"
+		},
+		{
+			"key": "buyerToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "productId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "orderId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "sellerId",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "1. Authentication",
+			"item": [
+				{
+					"name": "Register Buyer Account",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.token) {",
+									"        pm.collectionVariables.set('buyerToken', jsonData.token);",
+									"        console.log('Buyer token saved:', jsonData.token);",
+									"    }",
+									"}",
+									"",
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Response has token', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('token');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John Buyer\",\n  \"email\": \"johnbuyer@marketplace.com\",\n  \"password\": \"buyerpass123\",\n  \"role\": \"buyer\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "register"]
+						},
+						"description": "Register a new buyer account. The token will be automatically saved for subsequent requests."
+					},
+					"response": []
+				},
+				{
+					"name": "Login Buyer Account",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.token) {",
+									"        pm.collectionVariables.set('buyerToken', jsonData.token);",
+									"        console.log('Buyer token saved:', jsonData.token);",
+									"    }",
+									"}",
+									"",
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has token', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('token');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"johnbuyer@marketplace.com\",\n  \"password\": \"buyerpass123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "login"]
+						},
+						"description": "Login with existing buyer account"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. Browse Products (Public)",
+			"item": [
+				{
+					"name": "Get All Products",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response is an array', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    var products = pm.response.json();",
+									"    if (products.length > 0) {",
+									"        pm.collectionVariables.set('productId', products[0]._id);",
+									"        if (products[0].seller) {",
+									"            pm.collectionVariables.set('sellerId', products[0].seller);",
+									"        }",
+									"        console.log('Product ID saved:', products[0]._id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/public/products",
+							"host": ["{{baseUrl}}"],
+							"path": ["public", "products"]
+						},
+						"description": "Browse all available products (no authentication required)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Product by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has product details', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('_id');",
+									"    pm.expect(jsonData).to.have.property('title');",
+									"    pm.expect(jsonData).to.have.property('price');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/public/products/{{productId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["public", "products", "{{productId}}"]
+						},
+						"description": "Get detailed information about a specific product"
+					},
+					"response": []
+				},
+				{
+					"name": "Search Products",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response is an array', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/public/search?q=product",
+							"host": ["{{baseUrl}}"],
+							"path": ["public", "search"],
+							"query": [
+								{
+									"key": "q",
+									"value": "product"
+								}
+							]
+						},
+						"description": "Search for products by keyword"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Categories",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response is an array', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/public/categories",
+							"host": ["{{baseUrl}}"],
+							"path": ["public", "categories"]
+						},
+						"description": "Get all product categories"
+					},
+					"response": []
+				},
+				{
+					"name": "Get AI Product Summary",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/public/products/{{productId}}/summary",
+							"host": ["{{baseUrl}}"],
+							"path": ["public", "products", "{{productId}}", "summary"]
+						},
+						"description": "Get AI-generated summary of product comments"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. Shopping Cart",
+			"item": [
+				{
+					"name": "Add Product to Cart",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200 or 201', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+									"});",
+									"",
+									"pm.test('Cart updated successfully', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('items');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{buyerToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"productId\": \"{{productId}}\",\n  \"quantity\": 2\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/buyer/cart/add",
+							"host": ["{{baseUrl}}"],
+							"path": ["buyer", "cart", "add"]
+						},
+						"description": "Add a product to the shopping cart"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Cart",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has cart data', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('items');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{buyerToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/buyer/cart",
+							"host": ["{{baseUrl}}"],
+							"path": ["buyer", "cart"]
+						},
+						"description": "Get current shopping cart contents"
+					},
+					"response": []
+				},
+				{
+					"name": "Remove Item from Cart",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{buyerToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/buyer/cart/item/{{productId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["buyer", "cart", "item", "{{productId}}"]
+						},
+						"description": "Remove a specific item from cart"
+					},
+					"response": []
+				},
+				{
+					"name": "Re-add Product to Cart (for checkout)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200 or 201', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{buyerToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"productId\": \"{{productId}}\",\n  \"quantity\": 1\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/buyer/cart/add",
+							"host": ["{{baseUrl}}"],
+							"path": ["buyer", "cart", "add"]
+						},
+						"description": "Re-add product for checkout test"
+					},
+					"response": []
+				},
+				{
+					"name": "Clear Cart",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{buyerToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/buyer/cart/clear",
+							"host": ["{{baseUrl}}"],
+							"path": ["buyer", "cart", "clear"]
+						},
+						"description": "Clear all items from cart"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "4. Orders & Checkout",
+			"item": [
+				{
+					"name": "Create Order (Checkout)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData._id) {",
+									"        pm.collectionVariables.set('orderId', jsonData._id);",
+									"        console.log('Order ID saved:', jsonData._id);",
+									"    } else if (jsonData.id) {",
+									"        pm.collectionVariables.set('orderId', jsonData.id);",
+									"        console.log('Order ID saved:', jsonData.id);",
+									"    }",
+									"}",
+									"",
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Order created successfully', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('total');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// First add item to cart before checkout",
+									"pm.sendRequest({",
+									"    url: pm.collectionVariables.get('baseUrl') + '/buyer/cart/add',",
+									"    method: 'POST',",
+									"    header: {",
+									"        'Authorization': 'Bearer ' + pm.collectionVariables.get('buyerToken'),",
+									"        'Content-Type': 'application/json'",
+									"    },",
+									"    body: {",
+									"        mode: 'raw',",
+									"        raw: JSON.stringify({",
+									"            productId: pm.collectionVariables.get('productId'),",
+									"            quantity: 2",
+									"        })",
+									"    }",
+									"}, function (err, res) {",
+									"    if (err) {",
+									"        console.log('Error adding to cart:', err);",
+									"    } else {",
+									"        console.log('Item added to cart before checkout');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{buyerToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"items\": [\n    {\n      \"product\": \"{{productId}}\",\n      \"quantity\": 2\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/buyer/orders",
+							"host": ["{{baseUrl}}"],
+							"path": ["buyer", "orders"]
+						},
+						"description": "Create a new order (checkout from cart)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Buyer Orders",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response is an array', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{buyerToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/buyer/orders",
+							"host": ["{{baseUrl}}"],
+							"path": ["buyer", "orders"]
+						},
+						"description": "Get all orders for the logged-in buyer"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Order by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has order details', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('_id');",
+									"    pm.expect(jsonData).to.have.property('items');",
+									"    pm.expect(jsonData).to.have.property('total');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{buyerToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/buyer/orders/{{orderId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["buyer", "orders", "{{orderId}}"]
+						},
+						"description": "Get detailed information about a specific order"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "5. Product Ratings & Reviews",
+			"item": [
+				{
+					"name": "Rate Product",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Rating created successfully', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('rating');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{buyerToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"rating\": 5,\n  \"comment\": \"Excellent product! Highly recommended. Fast delivery and great quality.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/buyer/products/{{productId}}/rate",
+							"host": ["{{baseUrl}}"],
+							"path": ["buyer", "products", "{{productId}}", "rate"]
+						},
+						"description": "Rate a product (1-5 stars) with optional comment"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "6. Order Comments",
+			"item": [
+				{
+					"name": "Add Comment to Order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Comment added successfully', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('comment');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{buyerToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"comment\": \"Could you please expedite the shipping? I need this urgently. Thank you!\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/buyer/orders/{{orderId}}/comment",
+							"host": ["{{baseUrl}}"],
+							"path": ["buyer", "orders", "{{orderId}}", "comment"]
+						},
+						"description": "Add a comment to an order (buyer to seller communication)"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "7. Flag Seller",
+			"item": [
+				{
+					"name": "Flag Seller for Issues",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Flag created successfully', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('reason');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{buyerToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"sellerId\": \"{{sellerId}}\",\n  \"reason\": \"Delayed shipping and poor customer service\",\n  \"orderId\": \"{{orderId}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/buyer/flags/seller",
+							"host": ["{{baseUrl}}"],
+							"path": ["buyer", "flags", "seller"]
+						},
+						"description": "Flag a seller for inappropriate behavior or issues"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "8. Account Management",
+			"item": [
+				{
+					"name": "Delete Buyer Account",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Account deleted successfully', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('message');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{buyerToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/auth/delete",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "delete"]
+						},
+						"description": "Delete the buyer account (WARNING: This is irreversible!)"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

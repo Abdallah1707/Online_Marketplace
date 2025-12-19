@@ -27,6 +27,7 @@ function App() {
   return (
     <Router>
       <Routes>
+        <Route path="/" element={<Navigate to="/login" />} />
         <Route 
           path="/login" 
           element={!isAuthenticated ? <Login setIsAuthenticated={setIsAuthenticated} /> : <Navigate to="/dashboard" />} 
@@ -37,7 +38,7 @@ function App() {
         />
         
         {isAuthenticated ? (
-          <Route element={<Layout />}>
+          <Route element={<Layout setIsAuthenticated={setIsAuthenticated} />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/products" element={<Products />} />
             <Route path="/orders" element={<Orders />} />

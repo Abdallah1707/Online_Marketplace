@@ -1,0 +1,218 @@
+{
+  "info": {
+    "name": "Add Product Comments for AI Summary Testing",
+    "description": "Collection to add multiple ratings/comments to products for testing the AI summary feature",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000/api"
+    },
+    {
+      "key": "buyerToken1",
+      "value": "",
+      "description": "Token for first buyer - auto-filled after registration"
+    },
+    {
+      "key": "buyerToken2",
+      "value": "",
+      "description": "Token for second buyer - auto-filled after registration"
+    },
+    {
+      "key": "buyerToken3",
+      "value": "",
+      "description": "Token for third buyer - auto-filled after registration"
+    },
+    {
+      "key": "productId1",
+      "value": "",
+      "description": "iPhone 15 Pro ID - auto-filled from POSTMAN_TEST_DATA collection"
+    }
+  ],
+  "item": [
+    {
+      "name": "Setup",
+      "item": [
+        {
+          "name": "Register Buyer 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('buyerToken1', jsonData.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Alice Johnson\",\n  \"email\": \"alice.buyer@test.com\",\n  \"password\": \"password123\",\n  \"role\": \"buyer\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Register Buyer 2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('buyerToken2', jsonData.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Bob Smith\",\n  \"email\": \"bob.buyer@test.com\",\n  \"password\": \"password123\",\n  \"role\": \"buyer\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Register Buyer 3",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('buyerToken3', jsonData.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Carol Davis\",\n  \"email\": \"carol.buyer@test.com\",\n  \"password\": \"password123\",\n  \"role\": \"buyer\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Add Comments - iPhone 15 Pro",
+      "item": [
+        {
+          "name": "Comment 1 - Excellent quality",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{buyerToken1}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"This iPhone is absolutely amazing! The build quality is exceptional, and the performance exceeds my expectations. Camera quality is outstanding. Highly recommend!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/buyer/products/{{productId1}}/rate",
+              "host": ["{{baseUrl}}"],
+              "path": ["buyer", "products", "{{productId1}}", "rate"]
+            }
+          }
+        },
+        {
+          "name": "Comment 2 - Good but pricey",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{buyerToken2}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 4,\n  \"comment\": \"Great phone overall. The screen is vibrant and the A17 Pro chip is incredibly fast. Battery life is decent. However, it's expensive compared to similar models. Still worth it for the ecosystem.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/buyer/products/{{productId1}}/rate",
+              "host": ["{{baseUrl}}"],
+              "path": ["buyer", "products", "{{productId1}}", "rate"]
+            }
+          }
+        },
+        {
+          "name": "Comment 3 - Fast delivery",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{buyerToken3}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Received my phone in just 2 days! Packaging was secure and premium. The titanium design feels amazing in hand. The phone works perfectly out of the box. Very satisfied with the purchase and the seller's service.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/buyer/products/{{productId1}}/rate",
+              "host": ["{{baseUrl}}"],
+              "path": ["buyer", "products", "{{productId1}}", "rate"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Test AI Summary",
+      "item": [
+        {
+          "name": "Get Product with Ratings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/public/products/{{productId1}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["public", "products", "{{productId1}}"]
+            }
+          }
+        },
+        {
+          "name": "Get AI Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/public/products/{{productId1}}/summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["public", "products", "{{productId1}}", "summary"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

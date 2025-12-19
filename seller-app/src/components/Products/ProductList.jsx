@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { productService } from '../../services/productService'
+import { categoryService } from '../../services/categoryService'
 import ProductCard from './ProductCard'
 import AddProductModal from './AddProductModal'
 import Button from '../Common/Button'
@@ -7,7 +8,10 @@ import './ProductList.css'
 
 export default function ProductList() {
   const [products, setProducts] = useState([])
+  const [categories, setCategories] = useState([])
   const [showModal, setShowModal] = useState(false)
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [editingProduct, setEditingProduct] = useState(null)
@@ -15,7 +19,17 @@ export default function ProductList() {
 
   useEffect(() => {
     fetchProducts()
+    fetchCategories()
   }, [])
+
+  const fetchCategories = async () => {
+    try {
+      const data = await categoryService.list()
+      setCategories(Array.isArray(data) ? data : [])
+    } catch (err) {
+      console.error('Failed to load categories:', err)
+    }
+  }
 
   const fetchProducts = async () => {
     try {
@@ -59,6 +73,19 @@ export default function ProductList() {
     fetchProducts()
   }
 
+  const handleCategoryFilter = (categoryId) => {
+    setSelectedCategory(categoryId)
+    setShowFilterDropdown(false)
+  }
+
+  const filteredProducts = useMemo(() => {
+    if (!selectedCategory) return products
+    return products.filter(product => {
+      const productCategoryId = product.category?._id || product.category
+      return productCategoryId === selectedCategory
+    })
+  }, [products, selectedCategory])
+
   if (loading) return <div className="loading">Loading products...</div>
   if (error) return <div className="error">{error}</div>
 
@@ -74,9 +101,47 @@ export default function ProductList() {
           <Button variant="primary" onClick={handleAddNew} icon="➕">
             Add Product
           </Button>
-          <Button variant="secondary" icon="🔍">
-            Filter
-          </Button>
+          <div className="filter-container">
+            <Button 
+              variant="secondary" 
+              icon="🔍" 
+              onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+            >
+              Filter {selectedCategory && '(1)'}
+            </Button>
+            {showFilterDropdown && (
+              <div className="filter-dropdown">
+                <div className="filter-dropdown__header">
+                  <span>Filter by Category</span>
+                  {selectedCategory && (
+                    <button 
+                      className="clear-filter-btn"
+                      onClick={() => handleCategoryFilter('')}
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+                <div className="filter-dropdown__options">
+                  <button
+                    className={`filter-option ${!selectedCategory ? 'active' : ''}`}
+                    onClick={() => handleCategoryFilter('')}
+                  >
+                    All Categories
+                  </button>
+                  {categories.map(category => (
+                    <button
+                      key={category._id}
+                      className={`filter-option ${selectedCategory === category._id ? 'active' : ''}`}
+                      onClick={() => handleCategoryFilter(category._id)}
+                    >
+                      {category.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
           <div className="product-list__view-toggle">
             <button 
               className={`view-toggle-btn ${viewMode === 'grid' ? 'active' : ''}`}
@@ -96,13 +161,13 @@ export default function ProductList() {
         </div>
       </div>
 
-      {products.length === 0 ? (
+      {filteredProducts.length === 0 ? (
         <div className="empty-state">
-          <p>No products yet. Click "Add Product" to get started!</p>
+          <p>{selectedCategory ? 'No products in this category.' : 'No products yet. Click "Add Product" to get started!'}</p>
         </div>
       ) : (
         <div className={`product-list__grid ${viewMode}`}>
-          {products.map(product => (
+          {filteredProducts.map(product => (
             <ProductCard 
               key={product._id} 
               product={product}

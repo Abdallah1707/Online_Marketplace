@@ -46,3 +46,13 @@ exports.flagBuyer = async (req, res, next) => {
     res.status(201).json(flag);
   } catch (err) { next(err); }
 };
+
+exports.getSellerFlags = async (req, res, next) => {
+  try {
+    const sellerId = req.user.id;
+    const flags = await Flag.find({ target: sellerId })
+      .populate('reporter', 'name email')
+      .sort({ createdAt: -1 });
+    res.json(flags);
+  } catch (err) { next(err); }
+};

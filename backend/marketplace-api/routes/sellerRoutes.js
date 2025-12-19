@@ -21,5 +21,6 @@ router.delete('/categories/:id', productController.deleteCategory);
 // Flags (seller or admin)
 router.post('/flags', flagController.createFlag);
 router.post('/flags/buyer', protect, flagController.flagBuyer);
+router.get('/flags', flagController.getSellerFlags);
 
 module.exports = router;

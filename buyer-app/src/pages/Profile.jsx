@@ -13,17 +13,29 @@ export default function Profile({ setIsAuthenticated }) {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    const loadProfile = () => {
-      setLoading(true)
-      const storedUser = localStorage.getItem('user')
-      if (storedUser) {
-        const userData = JSON.parse(storedUser)
-        setUser(userData)
-        setFormData(userData)
-      } else {
-        setError('No user data found. Please log in again.')
+    const loadProfile = async () => {
+      try {
+        setLoading(true)
+        // Try to fetch from backend first
+        const profileData = await authAPI.getProfile()
+        setUser(profileData)
+        setFormData(profileData)
+        // Also update localStorage
+        localStorage.setItem('user', JSON.stringify(profileData))
+      } catch (err) {
+        console.warn('Failed to fetch profile from backend, using localStorage:', err)
+        // Fallback to localStorage
+        const storedUser = localStorage.getItem('user')
+        if (storedUser) {
+          const userData = JSON.parse(storedUser)
+          setUser(userData)
+          setFormData(userData)
+        } else {
+          setError('No user data found. Please log in again.')
+        }
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     }
     loadProfile()
   }, [])
@@ -70,13 +82,22 @@ export default function Profile({ setIsAuthenticated }) {
 
   const handleSave = async () => {
     try {
-      // If you have a profile update API, call it here:
-      // await authAPI.updateProfile(formData)
-      localStorage.setItem('user', JSON.stringify(formData))
-      setUser(formData)
+      // Update profile on backend
+      const updatedUser = await authAPI.updateProfile({
+        name: formData.name,
+        email: formData.email
+      })
+      
+      // Update local state and localStorage
+      setUser(updatedUser)
+      setFormData(updatedUser)
+      localStorage.setItem('user', JSON.stringify(updatedUser))
       setIsEditing(false)
+      
+      alert('Profile updated successfully!')
     } catch (err) {
       console.error('Error updating profile:', err)
+      alert(err.message || 'Failed to update profile')
     }
   }
 

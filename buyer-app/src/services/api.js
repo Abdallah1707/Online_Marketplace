@@ -44,6 +44,10 @@ export const authAPI = {
 
   login: (credentials) => apiClient.post('/auth/login', credentials),
 
+  getProfile: () => apiClient.get('/auth/profile'),
+
+  updateProfile: (profileData) => apiClient.put('/auth/profile', profileData),
+
   deleteAccount: () => apiClient.delete('/auth/delete'),
 };
 

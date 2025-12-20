@@ -70,7 +70,7 @@ export default function Signup() {
         <div className="auth-header">
           <div className="logo-section">
             <div className="logo-circle-large">S</div>
-            <h1>Sellora</h1>
+            <h1>Buy It</h1>
           </div>
           <h2>Create Account</h2>
           <p className="auth-subtitle">Join us and start shopping today</p>
@@ -133,20 +133,6 @@ export default function Signup() {
               placeholder="Re-enter password"
               required
             />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="role">I want to</label>
-            <select
-              id="role"
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              className="role-select"
-            >
-              <option value="buyer">Buy products</option>
-              <option value="seller">Sell products</option>
-            </select>
           </div>
 
           <button 

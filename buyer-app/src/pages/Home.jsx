@@ -38,7 +38,7 @@ export default function Home() {
       <main className="home-main">
         <section className="hero">
           <div className="hero-content">
-            <h1>Welcome to Sellora</h1>
+            <h1>Welcome to Buy It</h1>
             <p>Discover thousands of products at unbeatable prices.</p>
             <Link to="/products" className="hero-cta">
               Start Shopping
@@ -73,24 +73,6 @@ export default function Home() {
               ))}
             </div>
           )}
-        </section>
-
-        <section className="categories-section">
-          <h2>Shop by Category</h2>
-          <div className="categories-grid">
-            {[
-              { name: 'Electronics', icon: '📱' },
-              { name: 'Computers', icon: '💻' },
-              { name: 'Audio', icon: '🎧' },
-              { name: 'Accessories', icon: '🎒' },
-            ].map((cat) => (
-              <div key={cat.name} className="category-card">
-                <div className="category-icon">{cat.icon}</div>
-                <h3>{cat.name}</h3>
-                <a href="#">Browse →</a>
-              </div>
-            ))}
-          </div>
         </section>
 
         {/* Promo section removed as requested */}

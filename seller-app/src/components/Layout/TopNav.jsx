@@ -6,29 +6,19 @@ import { orderService } from '../../services/orderService'
 import { authService } from '../../services/authService'
 import './TopNav.css'
 
-export default function TopNav({ activeTab }) {
+export default function TopNav({ activeTab, setIsAuthenticated }) {
   const navigate = useNavigate()
-  const [showNotifications, setShowNotifications] = useState(false)
-  const [showSettings, setShowSettings] = useState(false)
   const [showAccount, setShowAccount] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState({ products: [], orders: [] })
   const [showSearchResults, setShowSearchResults] = useState(false)
   const [searchLoading, setSearchLoading] = useState(false)
-  const notifRef = useRef(null)
-  const settingsRef = useRef(null)
   const accountRef = useRef(null)
   const searchRef = useRef(null)
 
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (notifRef.current && !notifRef.current.contains(event.target)) {
-        setShowNotifications(false)
-      }
-      if (settingsRef.current && !settingsRef.current.contains(event.target)) {
-        setShowSettings(false)
-      }
       if (accountRef.current && !accountRef.current.contains(event.target)) {
         setShowAccount(false)
       }
@@ -123,6 +113,7 @@ export default function TopNav({ activeTab }) {
   const handleLogout = () => {
     removeToken()
     removeSeller()
+    setIsAuthenticated(false)
     navigate('/login')
   }
 
@@ -144,6 +135,7 @@ export default function TopNav({ activeTab }) {
       alert('Your account has been successfully deleted.')
       removeToken()
       removeSeller()
+      setIsAuthenticated(false)
       navigate('/login')
     } catch (error) {
       const errorMsg = error.response?.data?.error || error.message || 'Failed to delete account'
@@ -151,16 +143,7 @@ export default function TopNav({ activeTab }) {
     }
   }
 
-  const tabs = ['Dashboard', 'Products', 'Categories', 'Orders']
-
-  // Mock notifications (in real app, fetch from backend)
-  const notifications = [
-    { id: 1, title: 'New Order', message: 'You have a new order #1234', time: '5 min ago', unread: true },
-    { id: 2, title: 'Product Updated', message: 'iPhone 15 Pro stock updated', time: '1 hour ago', unread: true },
-    { id: 3, title: 'Low Stock Alert', message: 'MacBook Pro running low on stock', time: '2 hours ago', unread: false },
-  ]
-
-  const unreadCount = notifications.filter(n => n.unread).length
+  const tabs = ['Dashboard', 'Products', 'Categories', 'Orders', 'Flags']
 
   return (
     <nav className="topnav">
@@ -181,6 +164,7 @@ export default function TopNav({ activeTab }) {
               if (tab === 'Products') navigate('/products')
               if (tab === 'Orders') navigate('/orders')
               if (tab === 'Categories') navigate('/categories')
+              if (tab === 'Flags') navigate('/flags')
             }}
           >
             {tab}
@@ -277,104 +261,12 @@ export default function TopNav({ activeTab }) {
           )}
         </div>
 
-        {/* Notifications */}
-        <div className="dropdown" ref={notifRef}>
-          <button 
-            className="topnav__icon-btn"
-            onClick={() => {
-              setShowNotifications(!showNotifications)
-              setShowSettings(false)
-              setShowAccount(false)
-            }}
-          >
-            🔔
-            {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
-          </button>
-          {showNotifications && (
-            <div className="dropdown-menu notifications-menu">
-              <div className="dropdown-header">
-                <h3>Notifications</h3>
-                <button className="mark-read-btn">Mark all read</button>
-              </div>
-              <div className="dropdown-content">
-                {notifications.length === 0 ? (
-                  <div className="empty-state">No notifications</div>
-                ) : (
-                  notifications.map(notif => (
-                    <div key={notif.id} className={`notification-item ${notif.unread ? 'unread' : ''}`}>
-                      <div className="notification-content">
-                        <h4>{notif.title}</h4>
-                        <p>{notif.message}</p>
-                        <span className="notification-time">{notif.time}</span>
-                      </div>
-                      {notif.unread && <div className="unread-dot"></div>}
-                    </div>
-                  ))
-                )}
-              </div>
-              <div className="dropdown-footer">
-                <button onClick={() => navigate('/notifications')}>View all notifications</button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Settings */}
-        <div className="dropdown" ref={settingsRef}>
-          <button 
-            className="topnav__icon-btn"
-            onClick={() => {
-              setShowSettings(!showSettings)
-              setShowNotifications(false)
-              setShowAccount(false)
-            }}
-          >
-            ⚙️
-          </button>
-          {showSettings && (
-            <div className="dropdown-menu settings-menu">
-              <div className="dropdown-header">
-                <h3>Settings</h3>
-              </div>
-              <div className="dropdown-content">
-                <button className="dropdown-item" onClick={() => navigate('/settings/profile')}>
-                  <span className="item-icon">👤</span>
-                  <span>Profile Settings</span>
-                </button>
-                <button className="dropdown-item" onClick={() => navigate('/settings/store')}>
-                  <span className="item-icon">🏪</span>
-                  <span>Store Settings</span>
-                </button>
-                <button className="dropdown-item" onClick={() => navigate('/settings/payments')}>
-                  <span className="item-icon">💳</span>
-                  <span>Payment Methods</span>
-                </button>
-                <button className="dropdown-item" onClick={() => navigate('/settings/notifications')}>
-                  <span className="item-icon">🔔</span>
-                  <span>Notification Preferences</span>
-                </button>
-                <div className="dropdown-divider"></div>
-                <button className="dropdown-item" onClick={() => navigate('/settings/security')}>
-                  <span className="item-icon">🔒</span>
-                  <span>Security & Privacy</span>
-                </button>
-                <button className="dropdown-item" onClick={() => navigate('/help')}>
-                  <span className="item-icon">❓</span>
-                  <span>Help & Support</span>
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
         {/* Account Menu */}
         <div className="dropdown" ref={accountRef}>
           <button 
             className="topnav__avatar"
             onClick={() => {
               setShowAccount(!showAccount)
-              setShowNotifications(false)
-              setShowSettings(false)
             }}
           >
             👤

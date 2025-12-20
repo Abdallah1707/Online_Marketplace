@@ -8,6 +8,7 @@ import Orders from './pages/Orders'
 import Layout from './components/Layout/Layout'
 import Categories from './pages/Categories'
 import Notifications from './pages/Notifications'
+import Flags from './pages/Flags'
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -27,6 +28,7 @@ function App() {
   return (
     <Router>
       <Routes>
+        <Route path="/" element={<Navigate to="/login" />} />
         <Route 
           path="/login" 
           element={!isAuthenticated ? <Login setIsAuthenticated={setIsAuthenticated} /> : <Navigate to="/dashboard" />} 
@@ -37,12 +39,13 @@ function App() {
         />
         
         {isAuthenticated ? (
-          <Route element={<Layout />}>
+          <Route element={<Layout setIsAuthenticated={setIsAuthenticated} />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/products" element={<Products />} />
             <Route path="/orders" element={<Orders />} />
             <Route path="/categories" element={<Categories />} />
             <Route path="/notifications" element={<Notifications />} />
+            <Route path="/flags" element={<Flags />} />
           </Route>
         ) : (
           <Route path="*" element={<Navigate to="/login" />} />

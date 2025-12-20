@@ -47,8 +47,16 @@ export default function ProductCard({ product }) {
 
     fetchComments()
 
-    // Check flag status from backend
+    // Check flag status from backend - only if authenticated
     const checkFlagStatus = async () => {
+      const token = localStorage.getItem('token')
+      if (!token) {
+        // Not logged in, skip flag check silently
+        setFlagged(false)
+        setFlagResolved(false)
+        return
+      }
+
       try {
         const flags = await buyerAPI.getBuyerFlags()
         
@@ -79,8 +87,11 @@ export default function ProductCard({ product }) {
           setFlagResolved(false)
         }
       } catch (err) {
-        // If API fails, don't show any flags to avoid confusion
-        console.error('Failed to fetch flags:', err)
+        // If API fails (401, 403, etc.), silently handle it
+        // Only log if it's not an auth error
+        if (err.message !== 'Not authorized') {
+          console.warn('Could not fetch flags:', err.message)
+        }
         setFlagged(false)
         setFlagResolved(false)
       }

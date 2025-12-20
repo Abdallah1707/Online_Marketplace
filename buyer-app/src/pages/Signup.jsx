@@ -53,7 +53,11 @@ export default function Signup({ setIsAuthenticated }) {
       })
       
       localStorage.setItem('token', loginResponse.token)
-      localStorage.setItem('user', JSON.stringify(loginResponse.user || { email: formData.email, name: formData.name }))
+      localStorage.setItem('user', JSON.stringify({ 
+        email: formData.email, 
+        name: formData.name,
+        role: formData.role 
+      }))
       
       // Update authentication state
       setIsAuthenticated(true)

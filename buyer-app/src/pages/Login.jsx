@@ -30,12 +30,11 @@ export default function Login({ setIsAuthenticated }) {
       // Store token
       localStorage.setItem('token', response.token)
       
-      // Store basic user info (backend doesn't return user data on login)
-      const existingUser = JSON.parse(localStorage.getItem('user') || 'null')
+      // Store user info
       const userData = {
         email: formData.email,
-        name: (existingUser && existingUser.name) || '',
-        phone: (existingUser && existingUser.phone) || '',
+        name: formData.email.split('@')[0], // Use email prefix as default name
+        role: 'buyer'
       }
       localStorage.setItem('user', JSON.stringify(userData))
       

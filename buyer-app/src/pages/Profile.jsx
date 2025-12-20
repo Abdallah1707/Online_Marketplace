@@ -13,27 +13,19 @@ export default function Profile({ setIsAuthenticated }) {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        setLoading(true)
-        const profileData = await authAPI.getProfile()
-        setUser(profileData)
-        setFormData(profileData)
-      } catch (err) {
-        console.warn('Backend profile not available, using localStorage:', err)
-        const storedUser = localStorage.getItem('user')
-        if (storedUser) {
-          const userData = JSON.parse(storedUser)
-          setUser(userData)
-          setFormData(userData)
-        } else {
-          setError('No user data found. Please log in again.')
-        }
-      } finally {
-        setLoading(false)
+    const loadProfile = () => {
+      setLoading(true)
+      const storedUser = localStorage.getItem('user')
+      if (storedUser) {
+        const userData = JSON.parse(storedUser)
+        setUser(userData)
+        setFormData(userData)
+      } else {
+        setError('No user data found. Please log in again.')
       }
+      setLoading(false)
     }
-    fetchProfile()
+    loadProfile()
   }, [])
 
   // HELPER: Clear all local session data

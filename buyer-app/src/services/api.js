@@ -1,205 +1,122 @@
 // API Service Layer for Online Marketplace Backend
+import axios from 'axios';
+
 const API_BASE_URL = 'http://localhost:4000/api';
 
-// Helper function to handle API requests
-const apiRequest = async (endpoint, options = {}) => {
-  const token = localStorage.getItem('token');
-  
-  const config = {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
-      ...options.headers,
-    },
-    ...options,
-  };
-
-  try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Something went wrong');
-    }
-
-    return data;
-  } catch (error) {
-    console.error('API Error:', error);
-    throw error;
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json'
   }
-};
+});
+
+// Add token to requests
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Handle responses and errors
+apiClient.interceptors.response.use(
+  (response) => response.data,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Only clear and redirect if not on login/signup page
+      if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/signup')) {
+        localStorage.clear();
+        window.location.href = '/login';
+      }
+    }
+    const errorMessage = error.response?.data?.error || error.message || 'Something went wrong';
+    return Promise.reject(new Error(errorMessage));
+  }
+);
 
 // Authentication APIs
 export const authAPI = {
-  register: (userData) => 
-    apiRequest('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify(userData),
-    }),
+  register: (userData) => apiClient.post('/auth/register', userData),
 
-  login: (credentials) => 
-    apiRequest('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify(credentials),
-    }),
+  login: (credentials) => apiClient.post('/auth/login', credentials),
 
-  // getProfile: () => apiRequest('/auth/profile'),
-
-  deleteAccount: () =>
-    apiRequest('/auth/delete', {
-      method: 'DELETE',
-    }),
+  deleteAccount: () => apiClient.delete('/auth/delete'),
 };
 
 // Public APIs (no auth required)
 export const publicAPI = {
   getProducts: (params = {}) => {
     const query = new URLSearchParams(params).toString();
-    return apiRequest(`/public/products${query ? `?${query}` : ''}`);
+    return apiClient.get(`/public/products${query ? `?${query}` : ''}`);
   },
 
-  getProductById: (id) => apiRequest(`/public/products/${id}`),
+  getProductById: (id) => apiClient.get(`/public/products/${id}`),
 
-  getProductComments: (id) => {
-    // console.log(`[API] Fetching comments for product ${id}`);
-    return apiRequest(`/public/products/${id}/comments`)
-      .then(res => {
-        // console.log(`[API] Comments fetched:`, res);
-        return res;
-      })
-      .catch(err => {
-        console.log(`[API] Failed to fetch comments:`, err);
-        throw err;
-      });
-  },
+  getProductComments: (id) => apiClient.get(`/public/products/${id}/comments`),
 
-  getCategories: () => apiRequest('/public/categories'),
+  getCategories: () => apiClient.get('/public/categories'),
 };
 
 // Buyer APIs (auth required)
 export const buyerAPI = {
   // Cart
-  getCart: () => apiRequest('/buyer/cart'),
+  getCart: () => apiClient.get('/buyer/cart'),
   
-  addToCart: (productId, quantity = 1) =>
-    apiRequest('/buyer/cart', {
-      method: 'POST',
-      body: JSON.stringify({ productId, quantity }),
-    }),
+  addToCart: (productId, quantity = 1) => apiClient.post('/buyer/cart', { productId, quantity }),
 
-  updateCartItem: (productId, quantity) =>
-    apiRequest(`/buyer/cart/${productId}`, {
-      method: 'PUT',
-      body: JSON.stringify({ quantity }),
-    }),
+  updateCartItem: (productId, quantity) => apiClient.put(`/buyer/cart/${productId}`, { quantity }),
 
-  removeFromCart: (productId) =>
-    apiRequest(`/buyer/cart/${productId}`, {
-      method: 'DELETE',
-    }),
+  removeFromCart: (productId) => apiClient.delete(`/buyer/cart/${productId}`),
 
-  clearCart: () =>
-    apiRequest('/buyer/cart', {
-      method: 'DELETE',
-    }),
+  clearCart: () => apiClient.delete('/buyer/cart'),
 
   // Orders
-  getOrders: () => apiRequest('/buyer/orders'),
+  getOrders: () => apiClient.get('/buyer/orders'),
 
-  getOrderById: (orderId) => apiRequest(`/buyer/orders/${orderId}`),
+  createOrder: (orderData) => apiClient.post('/buyer/orders', orderData),
 
-  createOrder: (orderData) =>
-    apiRequest('/buyer/orders', {
-      method: 'POST',
-      body: JSON.stringify(orderData),
-    }),
+  getOrder: (orderId) => apiClient.get(`/buyer/orders/${orderId}`),
 
-  // Ratings
-  rateProduct: (productId, rating, comment) =>
-    apiRequest(`/buyer/products/${productId}/rate`, {
-      method: 'POST',
-      body: JSON.stringify({ rating, comment }),
-    }),
+  addOrderComment: (orderId, comment) => apiClient.post(`/buyer/orders/${orderId}/comment`, { comment }),
 
-  // Flags
-  flagProduct: (productId, reason) =>
-    apiRequest(`/buyer/products/${productId}/flag`, {
-      method: 'POST',
-      body: JSON.stringify({ reason }),
-    }),
+  // Rating
+  rateProduct: (productId, rating, comment) => apiClient.post(`/buyer/products/${productId}/rate`, { rating, comment }),
 
-  flagSeller: (sellerId, reason) =>
-    apiRequest(`/buyer/flags/seller`, {
-      method: 'POST',
-      body: JSON.stringify({ seller: sellerId, reason }),
-    }),
+  // Flag Product/Seller
+  flagProduct: (productId, reason) => apiClient.post('/buyer/flags/product', { product: productId, reason }),
 
-  flagProduct: (productId, reason) =>
-    apiRequest(`/buyer/flags/product`, {
-      method: 'POST',
-      body: JSON.stringify({ product: productId, reason }),
-    }),
+  flagSeller: (sellerId, reason) => apiClient.post('/buyer/flags/seller', { seller: sellerId, reason }),
 
-  getBuyerFlags: () => apiRequest('/buyer/flags'),
+  getBuyerFlags: () => apiClient.get('/buyer/flags'),
 
-  deleteBuyerFlag: (flagId) =>
-    apiRequest(`/buyer/flags/${flagId}`, {
-      method: 'DELETE',
-    }),
+  deleteBuyerFlag: (flagId) => apiClient.delete(`/buyer/flags/${flagId}`),
 
   // Comments
-  postProductComment: (productId, body) => {
-    console.log(`[API] Posting comment to backend`);
-    console.log(`[API] Product ID: ${productId}`);
-    console.log(`[API] Comment body: "${body}"`);
-    console.log(`[API] Using rate API with rating=0`);
-    return buyerAPI.rateProduct(productId, 0, body)
-      .then(res => {
-        console.log(`[API] Comment posted successfully`);
-        console.log(`[API] Response:`, res);
-        return res;
-      })
-      .catch(err => {
-        console.log(`[API] Comment post failed:`, err);
-        throw err;
-      });
-  },
+  postProductComment: (productId, body) => apiClient.post(`/buyer/products/${productId}/comment`, { body }),
 
   // AI Summary
-  getAISummary: (productId) =>
-    apiRequest(`/public/products/${productId}/summary`),
+  getAISummary: (productId) => apiClient.get(`/public/products/${productId}/summary`),
 };
 
 // Seller APIs (auth required)
 export const sellerAPI = {
   // Products
-  getMyProducts: () => apiRequest('/seller/products'),
+  getMyProducts: () => apiClient.get('/seller/products'),
 
-  createProduct: (productData) =>
-    apiRequest('/seller/products', {
-      method: 'POST',
-      body: JSON.stringify(productData),
-    }),
+  createProduct: (productData) => apiClient.post('/seller/products', productData),
 
-  updateProduct: (productId, productData) =>
-    apiRequest(`/seller/products/${productId}`, {
-      method: 'PUT',
-      body: JSON.stringify(productData),
-    }),
+  updateProduct: (productId, productData) => apiClient.put(`/seller/products/${productId}`, productData),
 
-  deleteProduct: (productId) =>
-    apiRequest(`/seller/products/${productId}`, {
-      method: 'DELETE',
-    }),
+  deleteProduct: (productId) => apiClient.delete(`/seller/products/${productId}`),
 
   // Orders
-  getOrders: () => apiRequest('/seller/orders'),
+  getOrders: () => apiClient.get('/seller/orders'),
 
-  updateOrderStatus: (orderId, status) =>
-    apiRequest(`/seller/orders/${orderId}/status`, {
-      method: 'PUT',
-      body: JSON.stringify({ status }),
-    }),
+  updateOrderStatus: (orderId, status) => apiClient.put(`/seller/orders/${orderId}/status`, { status }),
 };
 
 export default {

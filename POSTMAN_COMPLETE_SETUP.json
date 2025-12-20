@@ -1,0 +1,968 @@
+{
+  "info": {
+    "name": "Complete Marketplace Setup",
+    "description": "Creates users, products, and comments in correct order",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000/api"
+    },
+    {
+      "key": "seller1Token",
+      "value": ""
+    },
+    {
+      "key": "seller2Token",
+      "value": ""
+    },
+    {
+      "key": "buyer1Token",
+      "value": ""
+    },
+    {
+      "key": "buyer2Token",
+      "value": ""
+    },
+    {
+      "key": "buyer3Token",
+      "value": ""
+    },
+    {
+      "key": "categoryId1",
+      "value": ""
+    },
+    {
+      "key": "categoryId2",
+      "value": ""
+    },
+    {
+      "key": "productId1",
+      "value": ""
+    },
+    {
+      "key": "productId2",
+      "value": ""
+    },
+    {
+      "key": "productId3",
+      "value": ""
+    },
+    {
+      "key": "productId4",
+      "value": ""
+    },
+    {
+      "key": "email1",
+      "value": ""
+    },
+    {
+      "key": "email2",
+      "value": ""
+    },
+    {
+      "key": "email3",
+      "value": ""
+    },
+    {
+      "key": "email4",
+      "value": ""
+    },
+    {
+      "key": "email5",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Register Sellers",
+      "item": [
+        {
+          "name": "Register Seller 1 - Tech Store",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const timestamp = Date.now();",
+                  "const email = 'techstore' + timestamp + '@marketplace.com';",
+                  "pm.collectionVariables.set('email1', email);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Tech Store\",\n  \"email\": \"{{email1}}\",\n  \"password\": \"seller123\",\n  \"role\": \"seller\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login Seller 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "pm.collectionVariables.set('seller1Token', response.token);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email1}}\",\n  \"password\": \"seller123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register Seller 2 - Fashion Hub",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const timestamp = Date.now();",
+                  "const email = 'fashionhub' + timestamp + '@marketplace.com';",
+                  "pm.collectionVariables.set('email2', email);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Fashion Hub\",\n  \"email\": \"{{email2}}\",\n  \"password\": \"seller123\",\n  \"role\": \"seller\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login Seller 2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "pm.collectionVariables.set('seller2Token', response.token);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email2}}\",\n  \"password\": \"seller123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Create Categories",
+      "item": [
+        {
+          "name": "Create Electronics Category",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "pm.collectionVariables.set('categoryId1', response._id || response.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{seller1Token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Electronics\",\n  \"description\": \"Electronic devices and gadgets\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/seller/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["seller", "categories"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Clothing Category",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "pm.collectionVariables.set('categoryId2', response._id || response.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{seller2Token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Clothing\",\n  \"description\": \"Apparel and fashion items\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/seller/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["seller", "categories"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Create Products",
+      "item": [
+        {
+          "name": "Seller 1 - Create iPhone 15",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "pm.collectionVariables.set('productId1', response._id || response.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{seller1Token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"iPhone 15 Pro\",\n  \"description\": \"Latest Apple smartphone with A17 Pro chip, titanium design, and advanced camera system\",\n  \"price\": 999,\n  \"category\": \"{{categoryId1}}\",\n  \"stock\": 50,\n  \"deliveryDays\": 2\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/seller/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["seller", "products"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Seller 1 - Create MacBook Pro",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "pm.collectionVariables.set('productId2', response._id || response.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{seller1Token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"MacBook Pro 16-inch\",\n  \"description\": \"Powerful laptop with M3 Max chip, 16GB RAM, and stunning Retina display\",\n  \"price\": 2499,\n  \"category\": \"{{categoryId1}}\",\n  \"stock\": 30,\n  \"deliveryDays\": 3\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/seller/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["seller", "products"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Seller 2 - Create Winter Jacket",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "pm.collectionVariables.set('productId3', response._id || response.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{seller2Token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Premium Winter Jacket\",\n  \"description\": \"Waterproof and insulated jacket perfect for cold weather\",\n  \"price\": 149,\n  \"category\": \"{{categoryId2}}\",\n  \"stock\": 100,\n  \"deliveryDays\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/seller/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["seller", "products"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Seller 2 - Create Running Shoes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "pm.collectionVariables.set('productId4', response._id || response.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{seller2Token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Nike Air Max Running Shoes\",\n  \"description\": \"Comfortable running shoes with excellent cushioning and support\",\n  \"price\": 129,\n  \"category\": \"{{categoryId2}}\",\n  \"stock\": 75,\n  \"deliveryDays\": 4\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/seller/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["seller", "products"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Register Buyers",
+      "item": [
+        {
+          "name": "Register Buyer 1 - Alice",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const timestamp = Date.now();",
+                  "const email = 'alice' + timestamp + '@buyer.com';",
+                  "pm.collectionVariables.set('email3', email);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Alice Johnson\",\n  \"email\": \"{{email3}}\",\n  \"password\": \"buyer123\",\n  \"role\": \"buyer\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login Buyer 1 - Alice",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "pm.collectionVariables.set('buyer1Token', response.token);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email3}}\",\n  \"password\": \"buyer123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register Buyer 2 - Bob",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const timestamp = Date.now();",
+                  "const email = 'bob' + timestamp + '@buyer.com';",
+                  "pm.collectionVariables.set('email4', email);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Bob Smith\",\n  \"email\": \"{{email4}}\",\n  \"password\": \"buyer123\",\n  \"role\": \"buyer\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login Buyer 2 - Bob",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "pm.collectionVariables.set('buyer2Token', response.token);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email4}}\",\n  \"password\": \"buyer123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register Buyer 3 - Carol",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const timestamp = Date.now();",
+                  "const email = 'carol' + timestamp + '@buyer.com';",
+                  "pm.collectionVariables.set('email5', email);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Carol Davis\",\n  \"email\": \"{{email5}}\",\n  \"password\": \"buyer123\",\n  \"role\": \"buyer\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login Buyer 3 - Carol",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "pm.collectionVariables.set('buyer3Token', response.token);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email5}}\",\n  \"password\": \"buyer123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Add Product Ratings & Comments",
+      "item": [
+        {
+          "name": "Alice rates iPhone 15 (5 stars)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{buyer1Token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Absolutely love this phone! The camera quality is outstanding and the battery lasts all day. Fast delivery too!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/buyer/products/{{productId1}}/rate",
+              "host": ["{{baseUrl}}"],
+              "path": ["buyer", "products", "{{productId1}}", "rate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Bob rates iPhone 15 (4 stars)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{buyer2Token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 4,\n  \"comment\": \"Great phone overall. The titanium build feels premium. Only wish the battery was slightly better.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/buyer/products/{{productId1}}/rate",
+              "host": ["{{baseUrl}}"],
+              "path": ["buyer", "products", "{{productId1}}", "rate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Carol rates iPhone 15 (5 stars)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{buyer3Token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Best phone I've ever owned! The performance is incredible and iOS is so smooth. Highly recommend!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/buyer/products/{{productId1}}/rate",
+              "host": ["{{baseUrl}}"],
+              "path": ["buyer", "products", "{{productId1}}", "rate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Alice rates MacBook Pro (5 stars)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{buyer1Token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Perfect for my video editing work. The M3 Max chip handles 4K videos effortlessly. Worth every penny!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/buyer/products/{{productId2}}/rate",
+              "host": ["{{baseUrl}}"],
+              "path": ["buyer", "products", "{{productId2}}", "rate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Bob rates MacBook Pro (4 stars)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{buyer2Token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 4,\n  \"comment\": \"Excellent laptop for development. The display is gorgeous. A bit pricey but the performance justifies it.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/buyer/products/{{productId2}}/rate",
+              "host": ["{{baseUrl}}"],
+              "path": ["buyer", "products", "{{productId2}}", "rate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Bob rates Winter Jacket (5 stars)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{buyer2Token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Super warm and comfortable! Keeps me dry even in heavy snow. Great quality for the price.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/buyer/products/{{productId3}}/rate",
+              "host": ["{{baseUrl}}"],
+              "path": ["buyer", "products", "{{productId3}}", "rate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Carol rates Winter Jacket (4 stars)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{buyer3Token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 4,\n  \"comment\": \"Very nice jacket. Fits well and looks stylish. The insulation works great in cold weather.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/buyer/products/{{productId3}}/rate",
+              "host": ["{{baseUrl}}"],
+              "path": ["buyer", "products", "{{productId3}}", "rate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Alice rates Running Shoes (5 stars)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{buyer1Token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Most comfortable running shoes I've ever worn! Great cushioning and support for long runs. Love them!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/buyer/products/{{productId4}}/rate",
+              "host": ["{{baseUrl}}"],
+              "path": ["buyer", "products", "{{productId4}}", "rate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Carol rates Running Shoes (5 stars)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{buyer3Token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Perfect for my daily jogs! The fit is true to size and they look amazing. Highly recommend for runners!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/buyer/products/{{productId4}}/rate",
+              "host": ["{{baseUrl}}"],
+              "path": ["buyer", "products", "{{productId4}}", "rate"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Test AI Summaries",
+      "item": [
+        {
+          "name": "Get AI Summary for iPhone 15",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/public/products/{{productId1}}/summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["public", "products", "{{productId1}}", "summary"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get AI Summary for MacBook Pro",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/public/products/{{productId2}}/summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["public", "products", "{{productId2}}", "summary"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get AI Summary for Winter Jacket",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/public/products/{{productId3}}/summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["public", "products", "{{productId3}}", "summary"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get AI Summary for Running Shoes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/public/products/{{productId4}}/summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["public", "products", "{{productId4}}", "summary"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

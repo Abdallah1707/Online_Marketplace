@@ -14,6 +14,7 @@ export default function ProductCard({ product }) {
   const [loadingSummary, setLoadingSummary] = useState(false)
   const [flagged, setFlagged] = useState(false)
   const [flagResolved, setFlagResolved] = useState(false)
+  const [flagId, setFlagId] = useState(null)
   const [loadingFlag, setLoadingFlag] = useState(false)
   
   // Handle both backend (title) and frontend (name) field names
@@ -24,10 +25,6 @@ export default function ProductCard({ product }) {
   const productId = product._id || product.id
 
   useEffect(() => {
-    // Load persisted rating from localStorage
-    const ratings = JSON.parse(localStorage.getItem('ratings') || '{}')
-    if (ratings[productId]) setRating(ratings[productId])
-
     // Fetch comments from backend
     const fetchComments = async () => {
       try {
@@ -37,11 +34,6 @@ export default function ProductCard({ product }) {
         setSavedComments(comments)
       } catch (err) {
         console.error('Failed to fetch comments:', err)
-        // Fall back to localStorage if available
-        const localComments = JSON.parse(localStorage.getItem('comments') || '{}')
-        if (Array.isArray(localComments[productId])) {
-          setSavedComments(localComments[productId])
-        }
       }
     }
 
@@ -68,23 +60,12 @@ export default function ProductCard({ product }) {
         if (productFlag) {
           setFlagged(true)
           setFlagResolved(productFlag.resolved)
-          // Store flag ID for later deletion
-          const localFlags = JSON.parse(localStorage.getItem('flaggedProducts') || '{}')
-          localFlags[productId] = { 
-            flagged: true, 
-            resolved: productFlag.resolved, 
-            flagId: productFlag._id
-          }
-          localStorage.setItem('flaggedProducts', JSON.stringify(localFlags))
+          // Store flag ID in component state for deletion
+          setFlagId(productFlag._id)
         } else {
-          // No flag found in backend, clear local storage
-          const localFlags = JSON.parse(localStorage.getItem('flaggedProducts') || '{}')
-          if (localFlags[productId]) {
-            delete localFlags[productId]
-            localStorage.setItem('flaggedProducts', JSON.stringify(localFlags))
-          }
           setFlagged(false)
           setFlagResolved(false)
+          setFlagId(null)
         }
       } catch (err) {
         // If API fails (401, 403, etc.), silently handle it
@@ -113,9 +94,6 @@ export default function ProductCard({ product }) {
   const handleRate = async (value) => {
     try {
       await buyerAPI.rateProduct(productId, value, '')
-      const ratings = JSON.parse(localStorage.getItem('ratings') || '{}')
-      const updated = { ...ratings, [productId]: value }
-      localStorage.setItem('ratings', JSON.stringify(updated))
       setRating(value)
       setToast({ message: `Rated ${value} stars`, type: 'success' })
     } catch (err) {
@@ -185,44 +163,27 @@ export default function ProductCard({ product }) {
     setLoadingFlag(true)
     try {
       // If already flagged, unflag it
-      if (flagged) {
-        // Get flag ID from localStorage
-        const localFlags = JSON.parse(localStorage.getItem('flaggedProducts') || '{}')
-        const flagData = localFlags[productId]
-        
-        if (flagData?.flagId) {
-          // Delete from backend
-          try {
-            await buyerAPI.deleteBuyerFlag(flagData.flagId)
-          } catch (err) {
-            console.error('Failed to delete flag from backend:', err)
-          }
+      if (flagged && flagId) {
+        try {
+          await buyerAPI.deleteBuyerFlag(flagId)
+          setFlagged(false)
+          setFlagResolved(false)
+          setFlagId(null)
+          setToast({ message: 'Product unflagged', type: 'success' })
+        } catch (err) {
+          console.error('Failed to delete flag from backend:', err)
+          setToast({ message: err.message || 'Failed to unflag product', type: 'error' })
         }
-        
-        // Remove from localStorage
-        delete localFlags[productId]
-        localStorage.setItem('flaggedProducts', JSON.stringify(localFlags))
-        setFlagged(false)
-        setFlagResolved(false)
-        setToast({ message: 'Product unflagged', type: 'success' })
         return
       }
 
       // Create flag for this specific product
       try {
         const response = await buyerAPI.flagProduct(productId, 'Flagged by buyer from catalog')
-        setToast({ message: 'Product flagged for review', type: 'success' })
-        
-        // Store in localStorage with flag ID
-        const flags = JSON.parse(localStorage.getItem('flaggedProducts') || '{}')
-        flags[productId] = { 
-          flagged: true, 
-          resolved: false, 
-          flagId: response._id
-        }
-        localStorage.setItem('flaggedProducts', JSON.stringify(flags))
         setFlagged(true)
         setFlagResolved(false)
+        setFlagId(response._id)
+        setToast({ message: 'Product flagged for review', type: 'success' })
       } catch (err) {
         console.error('Flag error:', err)
         const errorMsg = err.response?.data?.error || err.message || 'Failed to flag product'

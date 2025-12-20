@@ -27,7 +27,7 @@ router.get('/orders/:id/comments', orderCommentController.getOrderComments);
 
 // Flags (seller or admin)
 router.post('/flags', flagController.createFlag);
-router.post('/flags/buyer', protect, flagController.flagBuyer);
+router.post('/flags/buyer', flagController.flagBuyer);
 router.get('/flags', flagController.getSellerFlags);
 router.patch('/flags/:id/resolve', flagController.resolveFlag);
 router.delete('/flags/:id', flagController.deleteFlag);

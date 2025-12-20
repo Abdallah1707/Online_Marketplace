@@ -96,6 +96,10 @@ export const buyerAPI = {
   flagSeller: (sellerId, reason) => apiClient.post('/buyer/flags/seller', { seller: sellerId, reason }),
 
   getBuyerFlags: () => apiClient.get('/buyer/flags'),
+  
+  getFlagsAgainstMe: () => apiClient.get('/buyer/flags/against-me'),
+  
+  resolveFlagAgainstMe: (flagId) => apiClient.patch(`/buyer/flags/${flagId}/resolve`),
 
   deleteBuyerFlag: (flagId) => apiClient.delete(`/buyer/flags/${flagId}`),
 

@@ -22,6 +22,8 @@ router.post('/products/:id/comment', protect, commentController.addProductCommen
 router.post('/flags/seller', protect, flagController.flagSeller);
 router.post('/flags/product', protect, flagController.flagProduct);
 router.get('/flags', flagController.getBuyerFlags);
+router.get('/flags/against-me', flagController.getFlagsAgainstBuyer);
+router.patch('/flags/:id/resolve', flagController.resolveBuyerFlag);
 router.delete('/flags/:id', flagController.deleteBuyerFlag);
 router.post('/orders/:id/comment', protect, orderCommentController.addOrderComment);
 

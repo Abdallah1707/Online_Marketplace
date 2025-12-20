@@ -38,7 +38,7 @@ export default function Home() {
       <main className="home-main">
         <section className="hero">
           <div className="hero-content">
-            <h1>Welcome to Buy It</h1>
+            <h1>Welcome to Sellora</h1>
             <p>Discover thousands of products at unbeatable prices.</p>
             <Link to="/products" className="hero-cta">
               Start Shopping

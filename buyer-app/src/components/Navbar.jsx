@@ -7,7 +7,7 @@ export default function Navbar({ active }) {
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [user, setUser] = useState(null)
-  const navItems = ['Home', 'Products', 'Orders', 'Profile']
+  const navItems = ['Home', 'Products', 'Cart', 'Orders', 'Profile']
 
   useEffect(() => {
     const userData = localStorage.getItem('user')

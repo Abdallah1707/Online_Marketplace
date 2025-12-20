@@ -43,7 +43,12 @@ export const authAPI = {
       body: JSON.stringify(credentials),
     }),
 
-  getProfile: () => apiRequest('/auth/profile'),
+  // getProfile: () => apiRequest('/auth/profile'),
+
+  deleteAccount: () =>
+    apiRequest('/auth/delete', {
+      method: 'DELETE',
+    }),
 };
 
 // Public APIs (no auth required)
@@ -56,10 +61,10 @@ export const publicAPI = {
   getProductById: (id) => apiRequest(`/public/products/${id}`),
 
   getProductComments: (id) => {
-    console.log(`[API] Fetching comments for product ${id}`);
+    // console.log(`[API] Fetching comments for product ${id}`);
     return apiRequest(`/public/products/${id}/comments`)
       .then(res => {
-        console.log(`[API] Comments fetched:`, res);
+        // console.log(`[API] Comments fetched:`, res);
         return res;
       })
       .catch(err => {
@@ -110,10 +115,10 @@ export const buyerAPI = {
     }),
 
   // Ratings
-  rateProduct: (productId, rating, review) =>
+  rateProduct: (productId, rating, comment) =>
     apiRequest(`/buyer/products/${productId}/rate`, {
       method: 'POST',
-      body: JSON.stringify({ rating, review }),
+      body: JSON.stringify({ rating, comment }),
     }),
 
   // Flags
@@ -147,20 +152,17 @@ export const buyerAPI = {
     console.log(`[API] Posting comment to backend`);
     console.log(`[API] Product ID: ${productId}`);
     console.log(`[API] Comment body: "${body}"`);
-    console.log(`[API] Endpoint: /buyer/products/${productId}/comment`);
-    return apiRequest(`/buyer/products/${productId}/comment`, {
-      method: 'POST',
-      body: JSON.stringify({ body }),
-    }).then(res => {
-      console.log(`[API] Comment posted successfully`);
-      console.log(`[API] Response author:`, res.author);
-      console.log(`[API] Response author name:`, res.author?.name);
-      console.log(`[API] Full response:`, JSON.stringify(res, null, 2));
-      return res;
-    }).catch(err => {
-      console.log(`[API] Comment post failed:`, err);
-      throw err;
-    });
+    console.log(`[API] Using rate API with rating=0`);
+    return buyerAPI.rateProduct(productId, 0, body)
+      .then(res => {
+        console.log(`[API] Comment posted successfully`);
+        console.log(`[API] Response:`, res);
+        return res;
+      })
+      .catch(err => {
+        console.log(`[API] Comment post failed:`, err);
+        throw err;
+      });
   },
 
   // AI Summary

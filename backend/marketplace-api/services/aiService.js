@@ -1,5 +1,7 @@
+// Minimal placeholder AI service for comment summarization
+// Replace with a real AI integration (OpenAI, Azure, etc.) as needed.
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-const Rating = require('../models/Rating'); // Changed from Comment to Rating
+const Comment = require('../models/Comment'); // Changed from Rating to Comment
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
@@ -26,46 +28,15 @@ exports.summarizeCommentsForProduct = async (productId) => {
       return { totalComments: 0, recentComments: [], summary: 'No comments yet for this product.' };
     }
 
-    const commentTexts = ratings.map(r => r.comment).join('\n');
+    const commentTexts = comments.map(c => c.body).filter(text => text && text.trim()).join('\n');
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
     const prompt = `Summarize the following product comments in a concise paragraph:\n\n${commentTexts}`;
     console.log(`Prompt being sent to Gemini (${prompt.length} chars)`);
     
-    // Direct REST API call to Google Gemini using v1 API
-    const apiKey = process.env.GOOGLE_API_KEY;
-    const modelName = 'gemini-1.5-flash'; // This is the correct model name for v1 API
-    const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${apiKey}`;
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const summary = response.text().trim() || 'Unable to generate summary';
     
-    console.log(`Calling Gemini API with model: ${modelName}`);
-    
-    const requestBody = {
-      contents: [{
-        parts: [{
-          text: prompt
-        }]
-      }]
-    };
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(requestBody)
-    });
-
-    console.log(`Gemini API Response Status: ${response.status}`);
-    
-    if (!response.ok) {
-      const errorData = await response.text();
-      console.log(`Gemini API Error Response:`, errorData);
-      throw new Error(`Gemini API Error: ${response.status} - ${errorData}`);
-    }
-
-    const data = await response.json();
-    console.log(`Gemini API Success Response:`, JSON.stringify(data, null, 2));
-    
-    const summary = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || 'Unable to generate summary';
     console.log(`Final Summary:`, summary);
     console.log(`=== END AI SUMMARY ===\n`);
 

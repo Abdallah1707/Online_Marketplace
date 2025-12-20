@@ -32,7 +32,7 @@ export default function Products() {
         const data = await publicAPI.getProducts()
         const fetchedProducts = Array.isArray(data) ? data : (data.products || [])
         
-        console.log('✅ Loaded', fetchedProducts.length, 'products from backend')
+        // console.log('✅ Loaded', fetchedProducts.length, 'products from backend')
         setProducts(fetchedProducts)
         setError(null)
       } catch (err) {

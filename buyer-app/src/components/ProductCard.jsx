@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import Toast from './Toast'
 import { buyerAPI, publicAPI } from '../services/api'
 import '../styles/ProductCard.css'
@@ -29,9 +30,9 @@ export default function ProductCard({ product }) {
     // Fetch comments from backend
     const fetchComments = async () => {
       try {
-        console.log(`Fetching comments for product ${productId}`);
+        // console.log(`Fetching comments for product ${productId}`);
         const comments = await publicAPI.getProductComments(productId)
-        console.log(`Received comments from backend:`, comments);
+        // console.log(`Received comments from backend:`, comments);
         setSavedComments(comments)
       } catch (err) {
         console.error('Failed to fetch comments:', err)
@@ -87,41 +88,28 @@ export default function ProductCard({ product }) {
     checkFlagStatus()
   }, [productId, product.seller])
   
-  const handleAddToCart = () => {
-    // Get current cart from localStorage
-    const cart = JSON.parse(localStorage.getItem('cart') || '[]')
-    
-    // Create order item
-    const orderItem = {
-      id: product._id || product.id,
-      name: productName,
-      price: product.price,
-      qty: 1,
-      image: productImage,
-      category: categoryName,
-      status: 'pending',
-      date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+  const handleAddToCart = async () => {
+    try {
+      await buyerAPI.addToCart(productId, 1)
+      setToast({ message: 'Added to cart!', type: 'success' })
+    } catch (err) {
+      console.error('Error adding to cart:', err)
+      setToast({ message: err.message || 'Failed to add to cart', type: 'error' })
     }
-    
-    // Check if product already in cart, if so increase qty
-    const existingItem = cart.find(item => item.id === orderItem.id)
-    if (existingItem) {
-      existingItem.qty += 1
-    } else {
-      cart.push(orderItem)
-    }
-    
-    // Save to localStorage
-    localStorage.setItem('cart', JSON.stringify(cart))
-    setToast({ message: 'Added to cart!', type: 'success' })
   }
 
-  const handleRate = (value) => {
-    const ratings = JSON.parse(localStorage.getItem('ratings') || '{}')
-    const updated = { ...ratings, [productId]: value }
-    localStorage.setItem('ratings', JSON.stringify(updated))
-    setRating(value)
-    setToast({ message: `Rated ${value} stars`, type: 'success' })
+  const handleRate = async (value) => {
+    try {
+      await buyerAPI.rateProduct(productId, value, '')
+      const ratings = JSON.parse(localStorage.getItem('ratings') || '{}')
+      const updated = { ...ratings, [productId]: value }
+      localStorage.setItem('ratings', JSON.stringify(updated))
+      setRating(value)
+      setToast({ message: `Rated ${value} stars`, type: 'success' })
+    } catch (err) {
+      console.error('Error rating product:', err)
+      setToast({ message: err.message || 'Failed to rate product', type: 'error' })
+    }
   }
 
   const handleSaveComment = async () => {
@@ -239,7 +227,9 @@ export default function ProductCard({ product }) {
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       
       <div className="product-image-wrap">
-        <img src={productImage} alt={productName} loading="lazy" />
+        <Link to={`/products/${productId}`}>
+          <img src={productImage} alt={productName} loading="lazy" />
+        </Link>
         {product.badge && <span className={`product-badge ${product.badgeType || 'new'}`}>{product.badge}</span>}
       </div>
 
@@ -248,7 +238,11 @@ export default function ProductCard({ product }) {
           <p className="category">{categoryName}</p>
         </div>
 
-        <h3 className="product-name">{productName}</h3>
+        <h3 className="product-name">
+          <Link to={`/products/${productId}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+            {productName}
+          </Link>
+        </h3>
 
         <div className="product-rating">
           <div className="stars" role="radiogroup" aria-label="Product rating">

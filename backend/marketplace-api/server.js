@@ -39,7 +39,7 @@ app.use('/api/buyer', buyerRoutes);
 app.use('/api/seller', sellerRoutes);
 
 // Mount new routes
-app.use('/api/buyer/cart', cartRoutes);               // buyer cart endpoints
+// app.use('/api/buyer/cart', cartRoutes);               // buyer cart endpoints - REMOVED: cart routes are in buyerRoutes.js
 app.use('/api/buyer/orders', buyerOrderRoutes);       // buyer order endpoints
 app.use('/api/seller/orders', sellerOrderRoutes);     // seller order endpoints
 

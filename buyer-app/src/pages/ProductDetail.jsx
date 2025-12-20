@@ -182,8 +182,11 @@ export default function ProductDetail() {
           <div className="detail-right">
             <div className="detail-header">
               <div>
-                <p className="detail-category">{product.category}</p>
-                <h1>{product.name}</h1>
+                <p className="detail-category">{product.category?.name || product.category}</p>
+                <h1>{product.title || product.name}</h1>
+                <p style={{ fontSize: '14px', color: '#6b7280', marginTop: '8px', marginBottom: '0' }}>
+                  🏪 Sold by <strong>{product.seller?.name || 'Unknown Seller'}</strong>
+                </p>
               </div>
               <button className="wishlist-btn" type="button">
                 ♡

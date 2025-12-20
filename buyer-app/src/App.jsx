@@ -12,9 +12,21 @@ import './App.css'
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
 
-  // Removed automatic token check - always start at login
+  // Check for token on mount
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (token) {
+      setIsAuthenticated(true)
+    }
+    setLoading(false)
+  }, [])
+
+  // Show loading screen while checking auth
+  if (loading) {
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Loading...</div>
+  }
 
   return (
     <Router>
@@ -52,7 +64,7 @@ function App() {
         />
         <Route
           path="/profile"
-          element={isAuthenticated ? <Profile /> : <Navigate to="/login" />}
+          element={isAuthenticated ? <Profile setIsAuthenticated={setIsAuthenticated} /> : <Navigate to="/login" />}
         />
 
         {/* Default redirect */}

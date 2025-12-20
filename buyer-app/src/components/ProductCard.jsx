@@ -20,6 +20,7 @@ export default function ProductCard({ product }) {
   const productName = product.title || product.name || 'Product'
   const productImage = product.image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=500&q=80'
   const categoryName = product.category?.name || product.category || 'General'
+  const sellerName = product.seller?.name || 'Unknown Seller'
   const productId = product._id || product.id
 
   useEffect(() => {
@@ -243,6 +244,10 @@ export default function ProductCard({ product }) {
             {productName}
           </Link>
         </h3>
+
+        <p className="product-seller" style={{ fontSize: '13px', color: '#6b7280', marginTop: '4px', marginBottom: '8px' }}>
+          🏪 Sold by <strong>{sellerName}</strong>
+        </p>
 
         <div className="product-rating">
           <div className="stars" role="radiogroup" aria-label="Product rating">

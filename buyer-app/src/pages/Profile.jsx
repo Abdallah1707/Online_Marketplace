@@ -4,7 +4,7 @@ import Navbar from '../components/Navbar'
 import { authAPI } from '../services/api' // Ensure deleteAccount is defined here
 import '../styles/Profile.css'
 
-export default function Profile() {
+export default function Profile({ setIsAuthenticated }) {
   const navigate = useNavigate()
   const [user, setUser] = useState(null)
   const [isEditing, setIsEditing] = useState(false)
@@ -46,6 +46,7 @@ export default function Profile() {
   const handleLogout = () => {
     // For JWT, we simply destroy the token on the client side
     clearLocalSession()
+    setIsAuthenticated(false)
     navigate('/login')
   }
 
@@ -57,14 +58,12 @@ export default function Profile() {
     if (confirmDelete) {
       try {
         // 1. Call the backend to delete the user and cascade-delete their data
-        await authAPI.deleteAccount() 
-        navigate('/Login')
+        await authAPI.deleteAccount()
         // 2. Clean up local storage
         clearLocalSession()
-        
+        setIsAuthenticated(false)
         alert('Account deleted successfully.')
-
-        
+        navigate('/login')
       } catch (err) {
         console.error('Error deleting account:', err)
         alert(err.response?.data?.error || 'Failed to delete account. Please try again.')

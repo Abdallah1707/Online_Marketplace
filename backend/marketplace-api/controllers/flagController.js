@@ -52,13 +52,27 @@ exports.flagSeller = async (req, res, next) => {
 
 exports.flagBuyer = async (req, res, next) => {
   try {
-    const { buyer, reason } = req.body;
+    const { buyer, buyerId, reason, orderId } = req.body;
     const reporter = req.user.id;
+    
+    // Accept both 'buyer' and 'buyerId' for compatibility
+    const targetBuyerId = buyer || buyerId;
+    
+    if (!targetBuyerId) {
+      return res.status(400).json({ error: 'Buyer ID is required' });
+    }
 
-    const buyerUser = await User.findById(buyer);
-    if (!buyerUser || buyerUser.role !== 'buyer') return res.status(404).json({ error: 'Buyer not found' });
+    const buyerUser = await User.findById(targetBuyerId);
+    if (!buyerUser || buyerUser.role !== 'buyer') {
+      return res.status(404).json({ error: 'Buyer not found' });
+    }
 
-    const flag = new Flag({ reporter, target: buyer, reason });
+    const flag = new Flag({ 
+      reporter, 
+      target: targetBuyerId, 
+      reason,
+      order: orderId // Store order reference if provided
+    });
     await flag.save();
     await flag.populate('reporter target');
     res.status(201).json(flag);
@@ -188,5 +202,41 @@ exports.deleteBuyerFlag = async (req, res, next) => {
     
     await Flag.findByIdAndDelete(flagId);
     res.json({ message: 'Flag deleted successfully' });
+  } catch (err) { next(err); }
+};
+
+// Get flags against the logged-in buyer
+exports.getFlagsAgainstBuyer = async (req, res, next) => {
+  try {
+    const buyerId = req.user.id;
+    
+    // Find all flags where this buyer is the target
+    const flags = await Flag.find({ target: buyerId })
+      .populate('reporter', 'name email')
+      .sort({ createdAt: -1 });
+    
+    res.json(flags);
+  } catch (err) { next(err); }
+};
+
+// Buyer resolves a flag against themselves
+exports.resolveBuyerFlag = async (req, res, next) => {
+  try {
+    const flagId = req.params.id;
+    const buyerId = req.user.id;
+    
+    const flag = await Flag.findById(flagId);
+    if (!flag) return res.status(404).json({ error: 'Flag not found' });
+    
+    // Check if this flag is against the buyer
+    if (flag.target.toString() !== buyerId.toString()) {
+      return res.status(403).json({ error: 'You can only resolve flags against yourself' });
+    }
+    
+    flag.resolved = true;
+    await flag.save();
+    await flag.populate('reporter', 'name email');
+    
+    res.json(flag);
   } catch (err) { next(err); }
 };

@@ -34,6 +34,48 @@ exports.getAllUsers = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
+exports.getProfile = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId).select('-password');
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json(user);
+  } catch (err) { next(err); }
+};
+
+exports.updateProfile = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const { name, email } = req.body;
+    
+    // Check if email is being changed and if it's already taken
+    if (email) {
+      const existingUser = await User.findOne({ email, _id: { $ne: userId } });
+      if (existingUser) {
+        return res.status(400).json({ error: 'Email already in use' });
+      }
+    }
+
+    const updateData = {};
+    if (name) updateData.name = name;
+    if (email) updateData.email = email;
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      updateData,
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json(user);
+  } catch (err) { next(err); }
+};
+
 exports.deleteUser = async (req, res, next) => {
  try {
     const userId = req.user.id; // From auth middleware

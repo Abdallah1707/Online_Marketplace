@@ -7,7 +7,7 @@ export default function Navbar({ active }) {
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [user, setUser] = useState(null)
-  const navItems = ['Home', 'Products', 'Orders', 'Profile']
+  const navItems = ['Home', 'Products', 'Cart', 'Orders', 'Profile']
 
   useEffect(() => {
     const userData = localStorage.getItem('user')
@@ -29,7 +29,7 @@ export default function Navbar({ active }) {
     <nav className="navbar">
       <div className="nav-left">
         <div className="logo-circle">S</div>
-        <span className="app-name">Buy It</span>
+        <span className="app-name">Sellora</span>
       </div>
 
       <div className="nav-center">

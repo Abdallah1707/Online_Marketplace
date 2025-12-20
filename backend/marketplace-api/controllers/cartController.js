@@ -26,6 +26,16 @@ exports.removeFromCart = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
+exports.updateCartItem = async (req, res, next) => {
+  try {
+    const user = req.user;
+    const { productId } = req.params;
+    const { quantity } = req.body;
+    const result = await cartService.updateCartItem(user, productId, quantity);
+    res.status(result.status || 200).json(result.body || result);
+  } catch (err) { next(err); }
+};
+
 exports.clearCart = async (req, res, next) => {
   try {
     const user = req.user;

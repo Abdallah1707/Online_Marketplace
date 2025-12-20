@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { authAPI } from '../services/api'
 import '../styles/Auth.css'
 
-export default function Login() {
+export default function Login({ setIsAuthenticated }) {
   const navigate = useNavigate()
   const [formData, setFormData] = useState({
     email: '',
@@ -27,18 +27,21 @@ export default function Login() {
     try {
       const response = await authAPI.login(formData)
       
-      // Store token and user info, preserving existing name if backend doesn't return it
+      // Store token
       localStorage.setItem('token', response.token)
-      const existingUser = JSON.parse(localStorage.getItem('user') || 'null')
-      const mergedUser = {
-        email: (response.user && response.user.email) || formData.email,
-        name: (response.user && response.user.name) || (existingUser && existingUser.name) || '',
-        phone: (response.user && response.user.phone) || (existingUser && existingUser.phone) || '',
-        ...response.user
+      
+      // Store user info
+      const userData = {
+        email: formData.email,
+        name: formData.email.split('@')[0], // Use email prefix as default name
+        role: 'buyer'
       }
-      localStorage.setItem('user', JSON.stringify(mergedUser))
+      localStorage.setItem('user', JSON.stringify(userData))
       
       console.log('✅ Login successful')
+      
+      // Update authentication state
+      setIsAuthenticated(true)
       
       // Redirect to home page
       navigate('/home')
@@ -55,7 +58,7 @@ export default function Login() {
         <div className="auth-header">
           <div className="logo-section">
             <div className="logo-circle-large">S</div>
-            <h1>Buy It</h1>
+            <h1>Sellora</h1>
           </div>
           <h2>Welcome Back</h2>
           <p className="auth-subtitle">Sign in to continue shopping</p>

@@ -5,6 +5,7 @@ const FlagSchema = new Schema({
   reporter: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   target: { type: Schema.Types.ObjectId, ref: 'User' }, // User being flagged (buyer or seller) - optional
   product: { type: Schema.Types.ObjectId, ref: 'Product' }, // Product being flagged - optional
+  order: { type: Schema.Types.ObjectId, ref: 'Order' }, // Order reference for buyer flags - optional
   reason: { type: String, required: true },
   resolved: { type: Boolean, default: false },
 }, { timestamps: true });

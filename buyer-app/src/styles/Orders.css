@@ -1,8 +1,13 @@
 /* Orders Page */
+.buyer-page {
+  min-height: 100vh;
+  background-color: #f9fafb;
+}
+
 .orders-main {
-  max-width: 1000px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 32px;
+  padding: 32px 24px;
 }
 
 .orders-header {
@@ -198,17 +203,18 @@
 
 .order-footer {
   display: flex;
+}
   flex-direction: column;
   align-items: flex-end;
   gap: 8px;
 }
 
 .order-total {
-  font-size: 18px;
+  font-size: 20px;
+  font-weight: 700;
   color: #111827;
 }
-
-.primary-action {
+18px
   height: 32px;
   padding: 0 12px;
   background: #4f46e5;
@@ -355,3 +361,98 @@
   font-weight: 600;
 }
 
+/* Comment Section Styles */
+.comment-section {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.comment-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  color: #374151;
+}
+
+.comment-textarea {
+  width: calc(100% - 24px);
+  min-height: 80px;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.comment-textarea:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.comment-btn {
+  margin-top: 10px;
+  padding: 10px 20px;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.comment-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.comment-btn:disabled {
+  opacity: 0.6;
+}
+
+/* Flag Badge Styles */
+.flag-badge {
+  padding: 6px 14px;
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s;
+}
+
+.flag-badge:hover {
+  background: #fecaca;
+  border-color: #fca5a5;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15);
+}
+
+.flag-details {
+  margin-top: 12px;
+  padding: 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.flag-details p {
+  margin: 6px 0;
+  color: #991b1b;
+}
+
+.flag-details strong {
+  color: #7f1d1d;
+}

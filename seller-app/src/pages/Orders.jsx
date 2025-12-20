@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { orderService } from "../services/orderService";
 import { flagService } from "../services/flagService";
+import api from "../services/api";
 import "./Orders.css";
 
 const STATUS_OPTIONS = ["pending", "processing", "shipped", "delivered", "cancelled"];
@@ -23,6 +24,8 @@ export default function Orders() {
   const [flaggingOrder, setFlaggingOrder] = useState(null);
   const [flagReason, setFlagReason] = useState("");
   const [flagSubmitting, setFlagSubmitting] = useState(false);
+  const [orderComments, setOrderComments] = useState({});
+  const [loadingComments, setLoadingComments] = useState({});
   const [error, setError] = useState("");
 
   const loadOrders = async () => {
@@ -76,6 +79,21 @@ export default function Orders() {
     setFlagModalOpen(false);
     setFlaggingOrder(null);
     setFlagReason("");
+  };
+
+  const fetchOrderComments = async (orderId) => {
+    if (orderComments[orderId]) return; // Already loaded
+    
+    setLoadingComments({ ...loadingComments, [orderId]: true });
+    try {
+      const response = await api.get(`/seller/orders/${orderId}/comments`);
+      setOrderComments({ ...orderComments, [orderId]: response.data });
+    } catch (err) {
+      console.error('Failed to fetch comments:', err);
+      setOrderComments({ ...orderComments, [orderId]: [] });
+    } finally {
+      setLoadingComments({ ...loadingComments, [orderId]: false });
+    }
   };
 
   const handleFlagSubmit = async (e) => {
@@ -221,6 +239,36 @@ export default function Orders() {
                   >
                     🚩 Flag Buyer
                   </button>
+                </div>
+
+                {/* Order Comments */}
+                <div className="order-comments-section">
+                  <button 
+                    className="view-comments-btn"
+                    onClick={() => fetchOrderComments(id)}
+                    disabled={loadingComments[id]}
+                  >
+                    {loadingComments[id] ? '⏳ Loading...' : '💬 View Buyer Comments'}
+                  </button>
+                  
+                  {orderComments[id] && orderComments[id].length > 0 && (
+                    <div className="comments-list">
+                      <h4>Buyer Comments:</h4>
+                      {orderComments[id].map((comment, idx) => (
+                        <div key={idx} className="comment-item">
+                          <div className="comment-header">
+                            <span className="comment-author">{comment.user?.name || 'Buyer'}</span>
+                            <span className="comment-date">{new Date(comment.createdAt).toLocaleString()}</span>
+                          </div>
+                          <p className="comment-text">{comment.comment}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {orderComments[id] && orderComments[id].length === 0 && (
+                    <p className="no-comments">No comments yet</p>
+                  )}
                 </div>
               </div>
             );

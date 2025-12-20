@@ -15,6 +15,7 @@ async function recalcCart(cart) {
 }
 
 exports.addToCart = async (user, productId, quantity = 1) => {
+  console.log('addToCart called with user:', user?.id, 'productId:', productId, 'quantity:', quantity);
   if (!user || !user.id) {
     const err = new Error('Not authorized');
     err.status = 401;
@@ -33,6 +34,7 @@ exports.addToCart = async (user, productId, quantity = 1) => {
   }
 
   const product = await Product.findById(productId).lean();
+  console.log('Product found:', product ? product.title : 'not found');
   if (!product) {
     const err = new Error('Product not found');
     err.status = 404;
@@ -45,6 +47,7 @@ exports.addToCart = async (user, productId, quantity = 1) => {
   }
 
   let cart = await Cart.findOne({ user: user.id }).populate({ path: 'items.product', select: 'seller' });
+  console.log('Existing cart:', cart ? 'found' : 'not found');
   if (!cart) {
     cart = new Cart({ user: user.id, items: [] });
   }
@@ -75,18 +78,20 @@ exports.addToCart = async (user, productId, quantity = 1) => {
 
   await recalcCart(cart);
   await cart.save();
-  await cart.populate({ path: 'items.product', select: 'title price seller' });
-
+  await cart.populate({ path: 'items.product', select: 'title price seller category' });
+  console.log('Cart saved with items:', cart.items.length);
   return { status: 200, body: { message: 'Added to cart', cart } };
 };
 
 exports.getCart = async (user) => {
+  console.log('getCart called for user:', user?.id);
   if (!user || !user.id) {
     const err = new Error('Not authorized');
     err.status = 401;
     throw err;
   }
-  const cart = await Cart.findOne({ user: user.id }).populate({ path: 'items.product', select: 'title price seller' }).lean();
+  const cart = await Cart.findOne({ user: user.id }).populate({ path: 'items.product', select: 'title price seller category' }).lean();
+  console.log('Cart retrieved with items:', cart ? cart.items.length : 0);
   if (!cart) return { status: 200, body: { items: [], totalPrice: 0, totalItems: 0 } };
   return { status: 200, body: cart };
 };
@@ -116,7 +121,46 @@ exports.removeFromCart = async (user, productId) => {
   }
   await recalcCart(cart);
   await cart.save();
-  await cart.populate({ path: 'items.product', select: 'title price seller' });
+  await cart.populate({ path: 'items.product', select: 'title price seller category' });
+  return { status: 200, body: cart };
+};
+
+exports.updateCartItem = async (user, productId, quantity) => {
+  if (!user || !user.id) {
+    const err = new Error('Not authorized');
+    err.status = 401;
+    throw err;
+  }
+  if (!productId) {
+    const err = new Error('productId is required');
+    err.status = 400;
+    throw err;
+  }
+  quantity = Number(quantity) || 1;
+  if (quantity <= 0) {
+    const err = new Error('Quantity must be > 0');
+    err.status = 400;
+    throw err;
+  }
+
+  const cart = await Cart.findOne({ user: user.id });
+  if (!cart) {
+    const err = new Error('Cart not found');
+    err.status = 404;
+    throw err;
+  }
+
+  const itemIndex = cart.items.findIndex(i => i.product.toString() === productId.toString());
+  if (itemIndex === -1) {
+    const err = new Error('Product not in cart');
+    err.status = 404;
+    throw err;
+  }
+
+  cart.items[itemIndex].quantity = quantity;
+  await recalcCart(cart);
+  await cart.save();
+  await cart.populate({ path: 'items.product', select: 'title price seller category' });
   return { status: 200, body: cart };
 };
 

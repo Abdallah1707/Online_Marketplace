@@ -1,18 +1,29 @@
 const express = require('express');
 const router = express.Router();
 const { protect, requireRole } = require('../middleware/authMiddleware');
+const cartController = require('../controllers/cartController');
 const orderController = require('../controllers/orderController');
 const ratingController = require('../controllers/ratingController');
 const flagController = require('../controllers/flagController');
 const orderCommentController = require('../controllers/orderCommentController');
+const commentController = require('../controllers/commentController');
 
 router.use(protect);
+router.get('/cart', cartController.getCart);
+router.post('/cart', cartController.addToCart);
+router.put('/cart/:productId', cartController.updateCartItem);
+router.delete('/cart/:productId', cartController.removeFromCart);
+router.delete('/cart', cartController.clearCart);
 router.post('/orders', orderController.createOrder);
+router.get('/orders', orderController.listBuyerOrders);
 router.get('/orders/:id', orderController.getOrder);
 router.post('/products/:id/rate', protect, ratingController.rateProduct);
+router.post('/products/:id/comment', protect, commentController.addProductComment);
 router.post('/flags/seller', protect, flagController.flagSeller);
 router.post('/flags/product', protect, flagController.flagProduct);
 router.get('/flags', flagController.getBuyerFlags);
+router.get('/flags/against-me', flagController.getFlagsAgainstBuyer);
+router.patch('/flags/:id/resolve', flagController.resolveBuyerFlag);
 router.delete('/flags/:id', flagController.deleteBuyerFlag);
 router.post('/orders/:id/comment', protect, orderCommentController.addOrderComment);
 

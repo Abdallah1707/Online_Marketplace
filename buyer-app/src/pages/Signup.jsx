@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { authAPI } from '../services/api'
 import '../styles/Auth.css'
 
-export default function Signup() {
+export default function Signup({ setIsAuthenticated }) {
   const navigate = useNavigate()
   const [formData, setFormData] = useState({
     name: '',
@@ -53,7 +53,14 @@ export default function Signup() {
       })
       
       localStorage.setItem('token', loginResponse.token)
-      localStorage.setItem('user', JSON.stringify(loginResponse.user || { email: formData.email, name: formData.name }))
+      localStorage.setItem('user', JSON.stringify({ 
+        email: formData.email, 
+        name: formData.name,
+        role: formData.role 
+      }))
+      
+      // Update authentication state
+      setIsAuthenticated(true)
       
       // Redirect to home page
       navigate('/home')
@@ -70,7 +77,7 @@ export default function Signup() {
         <div className="auth-header">
           <div className="logo-section">
             <div className="logo-circle-large">S</div>
-            <h1>Buy It</h1>
+            <h1>Sellora</h1>
           </div>
           <h2>Create Account</h2>
           <p className="auth-subtitle">Join us and start shopping today</p>

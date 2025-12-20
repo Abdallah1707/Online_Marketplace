@@ -1,67 +1,69 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useParams } from 'react-router-dom'
 import Toast from '../components/Toast'
 import Navbar from '../components/Navbar'
+import { publicAPI, buyerAPI } from '../services/api'
 import '../styles/ProductDetail.css'
 
 export default function ProductDetail() {
+  const { id } = useParams()
+  const [product, setProduct] = useState(null)
+  const [comments, setComments] = useState([])
   const [quantity, setQuantity] = useState(1)
   const [toast, setToast] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [addingToCart, setAddingToCart] = useState(false)
 
-  const product = {
-    id: 1,
-    name: 'Apple iPad (Gen 10)',
-    category: 'Tablets',
-    price: 329,
-    originalPrice: 399,
-    rating: 4.8,
-    reviews: 1248,
-    inStock: true,
-    image: 'https://images.unsplash.com/photo-1586968425264-3f7b2e8cf0a4?auto=format&fit=crop&w=800&q=80',
-    description:
-      'Experience stunning visuals on the 10.9-inch Liquid Retina display. Powerful A14 Bionic chip handles everything you throw at it. Perfect for work, creativity, and entertainment.',
-    specs: [
-      { label: 'Storage', value: '64GB' },
-      { label: 'Display', value: '10.9-inch Liquid Retina' },
-      { label: 'Processor', value: 'A14 Bionic' },
-      { label: 'Camera', value: '12MP + 12MP' },
-    ],
-    reviews_data: [
-      {
-        author: 'Sarah M.',
-        rating: 5,
-        text: 'Amazing tablet for the price. Great display and performance.',
-      },
-      {
-        author: 'John D.',
-        rating: 4,
-        text: 'Very happy with my purchase. Battery life is excellent.',
-      },
-    ],
-  }
+  useEffect(() => {
+    const fetchProductData = async () => {
+      try {
+        setLoading(true)
+        setError(null)
 
-  const handleAddToCart = () => {
-    const cart = JSON.parse(localStorage.getItem('cart') || '[]')
-    const orderItem = {
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      qty: quantity,
-      image: product.image,
-      category: product.category,
-      status: 'pending',
-      date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+        // Fetch product details
+        const productData = await publicAPI.getProductById(id)
+        // console.log('Product data loaded:', productData)
+        setProduct(productData)
+
+        // Fetch product comments
+        try {
+          const commentsData = await publicAPI.getProductComments(id)
+          setComments(commentsData || [])
+        } catch (commentError) {
+          console.warn('Could not fetch comments:', commentError)
+          setComments([])
+        }
+
+      } catch (err) {
+        console.error('Error fetching product:', err)
+        setError(err.message || 'Failed to load product')
+      } finally {
+        setLoading(false)
+      }
     }
 
-    const existingItem = cart.find(item => item.id === orderItem.id)
-    if (existingItem) {
-      existingItem.qty += quantity
-    } else {
-      cart.push(orderItem)
+    if (id) {
+      fetchProductData()
     }
+  }, [id])
 
-    localStorage.setItem('cart', JSON.stringify(cart))
-    setToast({ message: `Added ${quantity} item(s) to cart!`, type: 'success' })
-    setQuantity(1)
+  const handleAddToCart = async () => {
+    alert('Adding to cart clicked')
+    if (!product) return
+
+    console.log('Adding to cart:', product._id || product.id, quantity)
+    try {
+      setAddingToCart(true)
+      await buyerAPI.addToCart(product._id || product.id, quantity)
+      setToast({ message: `Added ${quantity} item(s) to cart!`, type: 'success' })
+      setQuantity(1)
+    } catch (err) {
+      console.error('Error adding to cart:', err)
+      setToast({ message: err.message || 'Failed to add to cart', type: 'error' })
+    } finally {
+      setAddingToCart(false)
+    }
   }
 
   const handleQuantityChange = (value) => {
@@ -72,17 +74,84 @@ export default function ProductDetail() {
   const handleIncrement = () => setQuantity(q => q + 1)
   const handleDecrement = () => setQuantity(q => (q > 1 ? q - 1 : 1))
 
+  if (loading) {
+    return (
+      <div className="buyer-page">
+        <Navbar />
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '50vh',
+          fontSize: '18px'
+        }}>
+          Loading product...
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="buyer-page">
+        <Navbar />
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '50vh',
+          fontSize: '18px',
+          color: '#dc3545'
+        }}>
+          <p>Error: {error}</p>
+          <button
+            onClick={() => window.history.back()}
+            style={{
+              marginTop: '10px',
+              padding: '8px 16px',
+              backgroundColor: '#007bff',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (!product) {
+    return (
+      <div className="buyer-page">
+        <Navbar />
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '50vh',
+          fontSize: '18px'
+        }}>
+          Product not found
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="buyer-page">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-      
+
       <Navbar />
 
       <main className="detail-main">
         <div className="breadcrumb">
-          <a href="#">Home</a>
+          <a href="/home">Home</a>
           <span>›</span>
-          <a href="#">Tablets</a>
+          <a href="/products">Products</a>
           <span>›</span>
           <span>{product.name}</span>
         </div>
@@ -90,28 +159,34 @@ export default function ProductDetail() {
         <div className="product-detail">
           <div className="detail-left">
             <div className="hero-image">
-              <img src={product.image} alt={product.name} />
-              <span className="on-sale">20% OFF</span>
+              <img src={product.image || product.images?.[0]} alt={product.name} />
+              {product.originalPrice && product.originalPrice > product.price && (
+                <span className="on-sale">
+                  {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
+                </span>
+              )}
             </div>
 
             <div className="thumbnail-gallery">
               <div className="thumbnail active">
-                <img src={product.image} alt="View 1" />
+                <img src={product.image || product.images?.[0]} alt="View 1" />
               </div>
-              <div className="thumbnail">
-                <img src={product.image} alt="View 2" />
-              </div>
-              <div className="thumbnail">
-                <img src={product.image} alt="View 3" />
-              </div>
+              {(product.images || []).slice(1, 4).map((img, idx) => (
+                <div key={idx} className="thumbnail">
+                  <img src={img} alt={`View ${idx + 2}`} />
+                </div>
+              ))}
             </div>
           </div>
 
           <div className="detail-right">
             <div className="detail-header">
               <div>
-                <p className="detail-category">{product.category}</p>
-                <h1>{product.name}</h1>
+                <p className="detail-category">{product.category?.name || product.category}</p>
+                <h1>{product.title || product.name}</h1>
+                <p style={{ fontSize: '14px', color: '#6b7280', marginTop: '8px', marginBottom: '0' }}>
+                  🏪 Sold by <strong>{product.seller?.name || 'Unknown Seller'}</strong>
+                </p>
               </div>
               <button className="wishlist-btn" type="button">
                 ♡
@@ -121,23 +196,27 @@ export default function ProductDetail() {
             <div className="rating-section">
               <div className="stars">
                 {[...Array(5)].map((_, i) => (
-                  <span key={i} className={`star ${i < Math.floor(product.rating) ? 'filled' : ''}`}>
+                  <span key={i} className={`star ${i < Math.floor(product.rating || 0) ? 'filled' : ''}`}>
                     ★
                   </span>
                 ))}
               </div>
-              <span className="rating-score">{product.rating}</span>
-              <span className="review-count">({product.reviews} reviews)</span>
+              <span className="rating-score">{product.rating || 0}</span>
+              <span className="review-count">({comments.length} reviews)</span>
             </div>
 
             <div className="pricing-section">
               <div className="price-group">
                 <span className="current-price">${product.price}</span>
-                <span className="original-price">${product.originalPrice}</span>
-                <span className="discount">Save $70</span>
+                {product.originalPrice && product.originalPrice > product.price && (
+                  <span className="original-price">${product.originalPrice}</span>
+                )}
+                {product.originalPrice && product.originalPrice > product.price && (
+                  <span className="discount">Save ${product.originalPrice - product.price}</span>
+                )}
               </div>
-              <div className="stock-status available">
-                ✓ In Stock • Usually ships in 2-3 business days
+              <div className={`stock-status ${product.inStock !== false ? 'available' : 'unavailable'}`}>
+                {product.inStock !== false ? '✓ In Stock • Usually ships in 2-3 business days' : '✗ Out of Stock'}
               </div>
             </div>
 
@@ -148,7 +227,7 @@ export default function ProductDetail() {
             <div className="specs-section">
               <h3>Key Specs</h3>
               <ul className="specs-grid">
-                {product.specs.map((spec, idx) => (
+                {(product.specs || []).map((spec, idx) => (
                   <li key={idx}>
                     <span className="spec-label">{spec.label}</span>
                     <span className="spec-value">{spec.value}</span>
@@ -164,8 +243,13 @@ export default function ProductDetail() {
                 <button type="button" onClick={handleIncrement}>+</button>
               </div>
 
-              <button className="add-to-cart-large" type="button" onClick={handleAddToCart}>
-                Add to Cart
+              <button
+                className="add-to-cart-large"
+                type="button"
+                onClick={handleAddToCart}
+                disabled={addingToCart || product.inStock === false}
+              >
+                {addingToCart ? 'Adding...' : 'Add to Cart'}
               </button>
 
               <button className="buy-now" type="button">
@@ -191,25 +275,32 @@ export default function ProductDetail() {
         </div>
 
         <section className="reviews-section">
-          <h2>Customer Reviews</h2>
+          <h2>Customer Reviews ({comments.length})</h2>
           <div className="reviews-list">
-            {product.reviews_data.map((review, idx) => (
-              <div key={idx} className="review-card">
-                <div className="review-header">
-                  <div>
-                    <strong>{review.author}</strong>
-                    <div className="review-stars">
-                      {[...Array(5)].map((_, i) => (
-                        <span key={i} className={`star ${i < review.rating ? 'filled' : ''}`}>
-                          ★
-                        </span>
-                      ))}
+            {comments.length > 0 ? (
+              comments.map((comment, idx) => (
+                <div key={comment._id || idx} className="review-card">
+                  <div className="review-header">
+                    <div>
+                      <strong>{comment.author?.name || 'Anonymous'}</strong>
+                      <div className="review-stars">
+                        {[...Array(5)].map((_, i) => (
+                          <span key={i} className={`star ${i < (comment.rating || 0) ? 'filled' : ''}`}>
+                            ★
+                          </span>
+                        ))}
+                      </div>
                     </div>
+                    <span className="review-date">
+                      {comment.createdAt ? new Date(comment.createdAt).toLocaleDateString() : ''}
+                    </span>
                   </div>
+                  <p className="review-text">{comment.body || comment.text}</p>
                 </div>
-                <p className="review-text">{review.text}</p>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="no-reviews">No reviews yet. Be the first to review this product!</p>
+            )}
           </div>
         </section>
       </main>

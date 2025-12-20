@@ -10,6 +10,8 @@ export default function Orders() {
   const [toast, setToast] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [commentText, setCommentText] = useState({}) // Store comments per order ID
+  const [submittingComment, setSubmittingComment] = useState({}) // Track submission state per order
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -51,6 +53,26 @@ export default function Orders() {
   const getFilteredItems = () => {
     if (activeFilter === 'All') return orderItems
     return orderItems.filter((item) => (item.status || 'pending').toLowerCase() === activeFilter.toLowerCase())
+  }
+
+  const handleAddComment = async (orderId) => {
+    const comment = commentText[orderId]?.trim()
+    if (!comment) {
+      setToast({ message: 'Please enter a comment', type: 'error' })
+      return
+    }
+
+    setSubmittingComment({ ...submittingComment, [orderId]: true })
+    try {
+      await buyerAPI.addOrderComment(orderId, comment)
+      setToast({ message: 'Comment added successfully', type: 'success' })
+      setCommentText({ ...commentText, [orderId]: '' })
+    } catch (err) {
+      console.error('Error adding comment:', err)
+      setToast({ message: err.message || 'Failed to add comment', type: 'error' })
+    } finally {
+      setSubmittingComment({ ...submittingComment, [orderId]: false })
+    }
   }
 
   if (loading) {
@@ -170,6 +192,30 @@ export default function Orders() {
                     <div className="order-footer">
                       <strong className="order-total">Total: ${item.total}</strong>
                     </div>
+                  </div>
+
+                  {/* Add Comment Section */}
+                  <div className="comment-section">
+                    <label className="comment-label">
+                      Add a comment about this order:
+                    </label>
+                    <textarea
+                      value={commentText[item._id] || ''}
+                      onChange={(e) => setCommentText({ ...commentText, [item._id]: e.target.value })}
+                      placeholder="Share your thoughts about this order..."
+                      className="comment-textarea"
+                    />
+                    <button
+                      onClick={() => handleAddComment(item._id)}
+                      disabled={submittingComment[item._id]}
+                      className="comment-btn"
+                      style={{
+                        backgroundColor: submittingComment[item._id] ? '#9ca3af' : '#4f46e5',
+                        cursor: submittingComment[item._id] ? 'not-allowed' : 'pointer'
+                      }}
+                    >
+                      {submittingComment[item._id] ? 'Submitting...' : 'Add Comment'}
+                    </button>
                   </div>
                 </div>
               )

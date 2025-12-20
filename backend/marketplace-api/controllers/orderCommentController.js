@@ -17,3 +17,13 @@ exports.addOrderComment = async (req, res, next) => {
     res.status(201).json(newComment);
   } catch (err) { next(err); }
 };
+
+exports.getOrderComments = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const comments = await OrderComment.find({ order: id })
+      .populate('user', 'name email')
+      .sort({ createdAt: -1 });
+    res.json(comments);
+  } catch (err) { next(err); }
+};
